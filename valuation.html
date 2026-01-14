@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投资管理人估值表处理工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #764ba2;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9ff;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 1.2em;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-name {
+            flex: 1;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .file-size {
+            color: #999;
+            font-size: 0.9em;
+            margin-left: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+            display: block;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .download-section {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .download-section.show {
+            display: block;
+        }
+
+        .download-link {
+            display: block;
+            background: #28a745;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .download-link:hover {
+            background: #218838;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar.show {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← 返回首页</a>
+        <h1>📊 投资管理人估值表处理工具</h1>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">点击或拖拽估值表 Excel 文件到此处</div>
+            <div class="upload-hint">支持 .xlsx, .xls 格式</div>
+            <input type="file" id="fileInput" multiple accept=".xlsx,.xls">
+        </div>
+
+        <div class="file-list" id="fileList"></div>
+
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <button class="btn" id="processBtn" disabled>开始处理</button>
+
+        <div class="status" id="status"></div>
+
+        <div class="download-section" id="downloadSection">
+            <h3 style="margin-top: 20px; color: #333;">处理完成！</h3>
+            <button class="btn" id="downloadAllBtn" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); margin-bottom: 15px; display: none;">
+                📦 一键全部下载
+            </button>
+            <div id="downloadLinks"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script>
+        let pyodide = null;
+        let uploadedFiles = [];
+        let processedFiles = [];
+
+        // 初始化 Pyodide
+        async function initPyodide() {
+            const statusEl = document.getElementById('status');
+            statusEl.className = 'status loading';
+            statusEl.textContent = '正在加载 Pyodide 环境...';
+            statusEl.style.display = 'block';
+
+            try {
+                pyodide = await loadPyodide({
+                    indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"
+                });
+
+                // 安装 pandas、openpyxl 和 xlrd
+                statusEl.textContent = '正在安装 pandas、openpyxl 和 xlrd...';
+                await pyodide.loadPackage(['micropip']);
+                const micropip = pyodide.pyimport('micropip');
+                
+                // 先尝试使用 loadPackage 安装 xlrd（如果 Pyodide 内置了的话）
+                try {
+                    await pyodide.loadPackage('xlrd');
+                    console.log('✓ xlrd 通过 loadPackage 安装成功');
+                } catch (e) {
+                    console.log('xlrd 不在 Pyodide 内置包中，将通过 micropip 安装');
+                }
+                
+                // 安装必要的包
+                // xlrd 用于读取 .xls 文件（旧版 Excel 格式）
+                // openpyxl 用于读取和写入 .xlsx 文件（新版 Excel 格式）
+                await micropip.install(['pandas', 'openpyxl', 'xlrd']);
+                
+                // 验证安装
+                pyodide.runPython(`
+                    import pandas as pd
+                    import openpyxl
+                    try:
+                        import xlrd
+                        print(f"pandas 版本: {pd.__version__}")
+                        print(f"openpyxl 版本: {openpyxl.__version__}")
+                        print(f"xlrd 版本: {xlrd.__version__}")
+                    except ImportError:
+                        print("警告: xlrd 未正确安装")
+                `);
+
+                statusEl.className = 'status success';
+                statusEl.textContent = '✓ Pyodide 环境加载完成！';
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, 2000);
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '加载失败: ' + error.message;
+            }
+        }
+
+        // 加载 Python 业务逻辑文件
+        async function loadProcessScript() {
+            let errorMessage = '';
+            try {
+                let logicLoaded = false;
+                
+                // 先加载 logic.py（如果存在）
+                try {
+                    console.log('正在加载 logic.py...');
+                    const logicResponse = await fetch('logic.py');
+                    console.log('logic.py 响应状态:', logicResponse.status, logicResponse.statusText);
+                    
+                    if (logicResponse.ok) {
+                        const logicScript = await logicResponse.text();
+                        console.log('logic.py 内容长度:', logicScript.length);
+                        
+                        // 将 logic.py 写入到 Pyodide 文件系统，使其可以作为模块导入
+                        try {
+                            // 写入到当前工作目录，这样 Python 可以找到它
+                            pyodide.FS.writeFile('logic.py', logicScript);
+                            console.log('✓ logic.py 已写入文件系统');
+                            
+                            // 验证文件是否存在
+                            const fileInfo = pyodide.FS.analyzePath('logic.py');
+                            if (fileInfo.exists) {
+                                logicLoaded = true;
+                                console.log('✓ logic.py 文件已确认存在');
+                            } else {
+                                throw new Error('logic.py 写入文件系统失败');
+                            }
+                        } catch (fsError) {
+                            errorMessage = `将 logic.py 写入文件系统时出错: ${fsError.message || fsError.toString()}`;
+                            console.error('写入 logic.py 失败:', fsError);
+                            throw new Error(errorMessage);
+                        }
+                    } else {
+                        console.warn('logic.py 不存在或无法访问 (HTTP ' + logicResponse.status + ')');
+                    }
+                } catch (logicError) {
+                    console.error('logic.py 加载失败:', logicError);
+                    // 检查 process.py 是否需要 logic.py
+                    // 先不抛出错误，等检查 process.py 后再决定
+                }
+                
+                // 然后加载 process.py
+                console.log('正在加载 process.py...');
+                const response = await fetch('process.py');
+                console.log('process.py 响应状态:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    errorMessage = `无法加载 process.py: HTTP ${response.status} ${response.statusText}`;
+                    throw new Error(errorMessage);
+                }
+                
+                const script = await response.text();
+                console.log('process.py 内容长度:', script.length);
+                
+                // 检查脚本中是否导入了 logic
+                if (script.includes('from logic import') || script.includes('import logic')) {
+                    if (!logicLoaded) {
+                        errorMessage = 'process.py 需要 logic.py，但 logic.py 加载失败。请确保 logic.py 文件与 process.py 在同一目录下。';
+                        throw new Error(errorMessage);
+                    }
+                }
+                
+                // 执行 process.py
+                try {
+                    pyodide.runPython(script);
+                    console.log('✓ process.py 加载并执行成功');
+                    return { success: true };
+                } catch (pyError) {
+                    errorMessage = `执行 process.py 时出错: ${pyError.message || pyError.toString()}`;
+                    console.error('执行 process.py 失败:', pyError);
+                    // 尝试获取更详细的 Python 错误信息
+                    try {
+                        const pyErrorDetail = pyodide.runPython(`
+                            import sys
+                            import traceback
+                            if hasattr(sys, 'last_value') and sys.last_value:
+                                str(sys.last_value) + '\\n' + ''.join(traceback.format_exception(sys.last_type, sys.last_value, sys.last_traceback))
+                            else:
+                                None
+                        `);
+                        if (pyErrorDetail && pyErrorDetail.toString() !== 'None') {
+                            errorMessage += '\n' + pyErrorDetail.toString();
+                        }
+                    } catch (e) {
+                        console.warn('无法获取详细错误信息:', e);
+                    }
+                    throw new Error(errorMessage);
+                }
+            } catch (error) {
+                console.error('加载 Python 脚本失败:', error);
+                return { 
+                    success: false, 
+                    error: errorMessage || error.message || error.toString() 
+                };
+            }
+        }
+
+        // 文件上传处理
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const processBtn = document.getElementById('processBtn');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            uploadedFiles = [];
+            fileList.innerHTML = '';
+
+            Array.from(files).forEach(file => {
+                if (file.name.match(/\.(xlsx|xls)$/i)) {
+                    uploadedFiles.push(file);
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-item';
+                    fileItem.innerHTML = `
+                        <span class="file-name">${file.name}</span>
+                        <span class="file-size">${formatFileSize(file.size)}</span>
+                    `;
+                    fileList.appendChild(fileItem);
+                }
+            });
+
+            processBtn.disabled = uploadedFiles.length === 0 || !pyodide;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // 处理文件
+        processBtn.addEventListener('click', async () => {
+            if (!pyodide || uploadedFiles.length === 0) return;
+
+            const statusEl = document.getElementById('status');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const downloadSection = document.getElementById('downloadSection');
+            const downloadLinks = document.getElementById('downloadLinks');
+
+            // 重置状态
+            downloadSection.classList.remove('show');
+            downloadLinks.innerHTML = '';
+            processedFiles = [];
+
+            // 加载 Python 脚本
+            statusEl.className = 'status loading';
+            statusEl.textContent = '正在加载处理脚本...';
+            statusEl.style.display = 'block';
+
+            const scriptResult = await loadProcessScript();
+            if (!scriptResult.success) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '加载处理脚本失败: ' + (scriptResult.error || '未知错误');
+                statusEl.style.display = 'block';
+                return;
+            }
+
+            progressBar.classList.add('show');
+            processBtn.disabled = true;
+
+            try {
+                for (let i = 0; i < uploadedFiles.length; i++) {
+                    const file = uploadedFiles[i];
+                    const progress = ((i + 1) / uploadedFiles.length) * 100;
+                    progressFill.style.width = progress + '%';
+
+                    statusEl.textContent = `正在处理: ${file.name} (${i + 1}/${uploadedFiles.length})`;
+
+                    // 读取文件为 ArrayBuffer
+                    const arrayBuffer = await file.arrayBuffer();
+                    const uint8Array = new Uint8Array(arrayBuffer);
+
+                    // 清理文件名，避免特殊字符问题
+                    const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                    
+                    // 将文件数据传递给 Python
+                    pyodide.FS.writeFile(safeFileName, uint8Array);
+
+                    // 调用 Python 处理函数
+                    let outputFileName;
+                    try {
+                        // 先执行处理，将结果存储到全局变量
+                        pyodide.runPython(`
+                            import sys
+                            import traceback
+                            import os
+                            _process_result = None
+                            _process_error = None
+                            try:
+                                # 传递原始文件名以保留中文
+                                original_name = r'${file.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"')}'
+                                result = process_excel(r'${safeFileName.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', original_name=original_name)
+                                # 验证结果文件是否存在
+                                if not os.path.exists(result):
+                                    raise Exception(f"处理完成但输出文件不存在: {result}")
+                                _process_result = result
+                            except KeyError as e:
+                                # 读取文件获取列名
+                                try:
+                                    df_temp = pd.read_excel(r'${safeFileName.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')
+                                    available_cols = list(df_temp.columns)
+                                    error_msg = f"列不存在错误: {str(e)}\\n可用列名: {available_cols}"
+                                except:
+                                    error_msg = f"列不存在错误: {str(e)}"
+                                _process_error = error_msg
+                            except OSError as e:
+                                error_msg = f"文件系统错误 (errno {e.errno}): {str(e)}\\n{traceback.format_exc()}"
+                                _process_error = error_msg
+                            except Exception as e:
+                                error_msg = f"{str(e)}\\n{traceback.format_exc()}"
+                                _process_error = error_msg
+                        `);
+                        
+                        // 检查是否有错误
+                        const processError = pyodide.runPython('_process_error if "_process_error" in globals() and _process_error is not None else None');
+                        if (processError && processError.toString() !== 'None') {
+                            throw new Error(processError.toString());
+                        }
+                        
+                        // 获取结果
+                        const resultPath = pyodide.runPython('_process_result if "_process_result" in globals() and _process_result is not None else None');
+                        if (!resultPath || resultPath.toString() === 'None') {
+                            throw new Error('处理函数未返回文件路径');
+                        }
+                        
+                        // 确保正确转换 Python 字符串（支持中文）
+                        outputFileName = String(resultPath);
+                        console.log('输出文件名:', outputFileName);
+                        console.log('文件名长度:', outputFileName.length);
+                    } catch (error) {
+                        // 清理临时文件
+                        try {
+                            pyodide.FS.unlink(safeFileName);
+                        } catch (e) {}
+                        
+                        // 提取错误信息
+                        let errorMsg = '';
+                        
+                        // 处理 Pyodide 的 ErrnoError
+                        if (error.name === 'ErrnoError' || error.errno !== undefined) {
+                            errorMsg = `文件系统错误 (errno: ${error.errno || '未知'}): ${error.message || error.toString()}`;
+                            if (error.errno === 44) {
+                                errorMsg += '\n这可能是文件保存时的问题，请检查文件路径和权限。';
+                            }
+                        } else if (error.message) {
+                            errorMsg = error.message;
+                        } else {
+                            errorMsg = error.toString();
+                        }
+                        
+                        // 尝试从 Python 获取更详细的错误信息
+                        try {
+                            const pyError = pyodide.runPython(`
+                                try:
+                                    import sys
+                                    if hasattr(sys, 'last_value') and sys.last_value:
+                                        str(sys.last_value)
+                                    else:
+                                        None
+                                except:
+                                    None
+                            `);
+                            if (pyError && pyError.toString() !== 'None') {
+                                errorMsg = pyError.toString() + '\n' + errorMsg;
+                            }
+                        } catch (e) {
+                            // 如果获取失败，使用原始错误信息
+                        }
+                        
+                        console.error('处理错误详情:', error);
+                        throw new Error(errorMsg);
+                    }
+
+                    // 验证 outputFileName 是否已设置
+                    if (!outputFileName || outputFileName === 'undefined' || outputFileName === 'None') {
+                        throw new Error('无法获取输出文件名，处理可能失败');
+                    }
+                    
+                    // 检查输出文件是否存在
+                    let fileExists = false;
+                    try {
+                        const fileInfo = pyodide.FS.analyzePath(outputFileName);
+                        fileExists = fileInfo.exists;
+                        console.log(`检查文件 ${outputFileName}: 存在=${fileExists}`);
+                    } catch (e) {
+                        console.error('检查文件时出错:', e);
+                        fileExists = false;
+                    }
+                    
+                    if (!fileExists) {
+                        // 尝试列出当前目录的文件，帮助调试
+                        try {
+                            const files = pyodide.runPython(`
+                                import os
+                                [f for f in os.listdir('.') if f.endswith('.xlsx')]
+                            `);
+                            console.log('当前目录的 xlsx 文件:', files);
+                        } catch (e) {
+                            console.error('列出文件失败:', e);
+                        }
+                        throw new Error(`输出文件 ${outputFileName} 不存在，文件保存可能失败`);
+                    }
+                    
+                    // 读取处理后的文件
+                    let outputData;
+                    try {
+                        outputData = pyodide.FS.readFile(outputFileName);
+                    } catch (e) {
+                        throw new Error(`读取输出文件失败: ${e.message}`);
+                    }
+                    
+                    const blob = new Blob([outputData], { 
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+                    });
+
+                    // 创建下载链接
+                    const url = URL.createObjectURL(blob);
+                    processedFiles.push({
+                        originalName: file.name,
+                        outputName: outputFileName, // 文件名已包含中文
+                        url: url
+                    });
+
+                    // 清理临时文件
+                    try {
+                        pyodide.FS.unlink(safeFileName);
+                        if (outputFileName && pyodide.FS.analyzePath(outputFileName).exists) {
+                            pyodide.FS.unlink(outputFileName);
+                        }
+                    } catch (e) {
+                        console.warn('清理临时文件失败:', e);
+                    }
+                }
+
+                // 显示下载链接
+                downloadLinks.innerHTML = processedFiles.map((file, index) => {
+                    const displayName = file.outputName || `processed_${file.originalName}`;
+                    // 对中文文件名进行编码处理，确保正确显示和下载
+                    const encodedName = encodeURIComponent(displayName);
+                    // 使用 data URL 方式确保中文文件名正确下载
+                    return `
+                        <a href="${file.url}" download="${displayName}" class="download-link" data-filename="${displayName}">
+                            📥 下载: ${displayName}
+                        </a>
+                    `;
+                }).join('');
+
+                // 设置一键全部下载按钮（只有多个文件时才显示）
+                const downloadAllBtn = document.getElementById('downloadAllBtn');
+                if (processedFiles.length > 1) {
+                    downloadAllBtn.style.display = 'block';
+                    downloadAllBtn.textContent = `📦 一键全部下载 (${processedFiles.length} 个文件)`;
+                } else {
+                    downloadAllBtn.style.display = 'none';
+                }
+
+                downloadSection.classList.add('show');
+                progressBar.classList.remove('show');
+                statusEl.className = 'status success';
+                statusEl.textContent = `✓ 处理完成！共处理 ${uploadedFiles.length} 个文件`;
+
+                // 清空文件列表
+                uploadedFiles = [];
+                fileList.innerHTML = '';
+                fileInput.value = '';
+                processBtn.disabled = false;
+
+            } catch (error) {
+                progressBar.classList.remove('show');
+                statusEl.className = 'status error';
+                let errorMessage = '处理失败: ';
+                if (error.message) {
+                    errorMessage += error.message;
+                } else if (error.toString) {
+                    errorMessage += error.toString();
+                } else {
+                    errorMessage += '未知错误';
+                }
+                statusEl.textContent = errorMessage;
+                statusEl.style.display = 'block';
+                console.error('处理错误:', error);
+                processBtn.disabled = false;
+                
+                // 清理所有临时文件
+                uploadedFiles.forEach(file => {
+                    const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                    try {
+                        if (pyodide.FS.analyzePath(safeFileName).exists) {
+                            pyodide.FS.unlink(safeFileName);
+                        }
+                    } catch (e) {
+                        console.warn('清理文件失败:', e);
+                    }
+                });
+            }
+        });
+
+        // 一键全部下载功能
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
+        downloadAllBtn.addEventListener('click', async () => {
+            if (processedFiles.length === 0) {
+                alert('没有可下载的文件');
+                return;
+            }
+
+            try {
+                downloadAllBtn.disabled = true;
+                downloadAllBtn.textContent = '📦 正在打包...';
+
+                // 创建 JSZip 实例
+                const zip = new JSZip();
+
+                // 将所有文件添加到 zip
+                for (let i = 0; i < processedFiles.length; i++) {
+                    const file = processedFiles[i];
+                    const displayName = file.outputName || `processed_${file.originalName}`;
+                    
+                    // 从 blob URL 获取文件数据
+                    const response = await fetch(file.url);
+                    const blob = await response.blob();
+                    
+                    // 添加到 zip
+                    zip.file(displayName, blob);
+                }
+
+                // 生成 zip 文件
+                const zipBlob = await zip.generateAsync({ 
+                    type: 'blob',
+                    compression: 'DEFLATE',
+                    compressionOptions: { level: 6 }
+                });
+
+                // 创建下载链接
+                const zipUrl = URL.createObjectURL(zipBlob);
+                const zipLink = document.createElement('a');
+                zipLink.href = zipUrl;
+                zipLink.download = `processed_files_${new Date().getTime()}.zip`;
+                document.body.appendChild(zipLink);
+                zipLink.click();
+                document.body.removeChild(zipLink);
+                
+                // 清理 URL
+                setTimeout(() => {
+                    URL.revokeObjectURL(zipUrl);
+                }, 100);
+
+                downloadAllBtn.disabled = false;
+                downloadAllBtn.textContent = '📦 一键全部下载';
+            } catch (error) {
+                console.error('打包失败:', error);
+                alert('打包失败: ' + error.message);
+                downloadAllBtn.disabled = false;
+                downloadAllBtn.textContent = '📦 一键全部下载';
+            }
+        });
+
+        // 页面加载时初始化
+        window.addEventListener('load', () => {
+            initPyodide().then(() => {
+                processBtn.disabled = uploadedFiles.length === 0;
+            });
+        });
+    </script>
+</body>
+</html>
+
