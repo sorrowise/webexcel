@@ -4,517 +4,271 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>投资管理人估值表处理工具</title>
-    <!-- 思源宋体 -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            /* Claude 风格配色 */
-            --bg-primary: #FAF9F7;
-            --bg-secondary: #F5F4F0;
-            --bg-card: #FFFFFF;
-            --text-primary: #1A1915;
-            --text-secondary: #5D5D5A;
-            --text-muted: #8B8B88;
-            --accent-primary: #D97706;
-            --accent-secondary: #B45309;
-            --accent-light: #FEF3C7;
-            --border-color: #E5E4E0;
-            --border-hover: #D1D0CC;
-            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08);
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            
-            /* 状态颜色 */
-            --success-bg: #ECFDF5;
-            --success-text: #065F46;
-            --success-border: #A7F3D0;
-            --warning-bg: #FFFBEB;
-            --warning-text: #92400E;
-            --warning-border: #FDE68A;
-            --error-bg: #FEF2F2;
-            --error-text: #991B1B;
-            --error-border: #FECACA;
-        }
-
         * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            font-family: 'Noto Serif SC', 'Source Han Serif SC', serif;
         }
 
         body {
-            font-family: 'Noto Serif SC', 'Source Han Serif SC', 'Source Han Serif', serif;
-            background: var(--bg-primary);
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2522 50%, #1a1a1a 100%);
             min-height: 100vh;
-            color: var(--text-primary);
-            line-height: 1.6;
         }
 
-        /* 顶部装饰条 */
-        .top-accent {
-            height: 3px;
-            background: linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+        .glass-card {
+            background: rgba(244, 243, 238, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(193, 95, 60, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
-        .page-wrapper {
-            max-width: 720px;
-            margin: 0 auto;
-            padding: 40px 24px 80px;
+        .glass-input {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(177, 173, 161, 0.5);
+            transition: all 0.3s ease;
         }
 
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.9375rem;
-            margin-bottom: 32px;
-            transition: color 0.2s;
-            cursor: pointer;
+        .glass-input:focus {
+            border-color: rgba(193, 95, 60, 0.8);
+            box-shadow: 0 0 0 4px rgba(193, 95, 60, 0.15);
+            outline: none;
         }
 
-        .back-link:hover {
-            color: var(--accent-primary);
-        }
-
-        .back-link svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .header-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 56px;
-            height: 56px;
-            background: var(--accent-light);
-            border-radius: var(--radius-md);
-            margin-bottom: 20px;
-        }
-
-        .header-icon svg {
-            width: 28px;
-            height: 28px;
-            color: var(--accent-primary);
-        }
-
-        h1 {
-            font-size: 1.875rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            letter-spacing: -0.02em;
-        }
-
-        .subtitle {
-            font-size: 1rem;
-            color: var(--text-secondary);
-        }
-
-        /* 上传区域 */
-        .upload-area {
-            background: var(--bg-card);
-            border: 2px dashed var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 48px 32px;
-            text-align: center;
-            margin-bottom: 24px;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-
-        .upload-area:hover {
-            border-color: var(--accent-primary);
-            background: var(--accent-light);
-        }
-
-        .upload-area.dragover {
-            border-color: var(--accent-primary);
-            background: var(--accent-light);
-            transform: scale(1.01);
-        }
-
-        .upload-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 64px;
-            height: 64px;
-            background: var(--bg-secondary);
-            border-radius: 50%;
-            margin-bottom: 20px;
-            transition: all 0.2s;
-        }
-
-        .upload-area:hover .upload-icon {
-            background: var(--accent-primary);
-        }
-
-        .upload-icon svg {
-            width: 28px;
-            height: 28px;
-            color: var(--text-secondary);
-            transition: color 0.2s;
-        }
-
-        .upload-area:hover .upload-icon svg {
-            color: white;
-        }
-
-        .upload-text {
-            font-size: 1.0625rem;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .upload-hint {
-            color: var(--text-muted);
-            font-size: 0.875rem;
-        }
-
-        #fileInput {
-            display: none;
-        }
-
-        /* 文件列表 */
-        .file-list {
-            margin-bottom: 24px;
-        }
-
-        .file-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            padding: 16px 20px;
-            border-radius: var(--radius-md);
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .file-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex: 1;
-            min-width: 0;
-        }
-
-        .file-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            background: var(--accent-light);
-            border-radius: var(--radius-sm);
-            flex-shrink: 0;
-        }
-
-        .file-icon svg {
-            width: 18px;
-            height: 18px;
-            color: var(--accent-primary);
-        }
-
-        .file-name {
-            color: var(--text-primary);
-            font-weight: 500;
-            font-size: 0.9375rem;
-            white-space: nowrap;
+        .btn-primary {
+            background: linear-gradient(135deg, #C15F3C 0%, #da7756 100%);
+            transition: all 0.3s ease;
+            position: relative;
             overflow: hidden;
-            text-overflow: ellipsis;
         }
 
-        .file-size {
-            color: var(--text-muted);
-            font-size: 0.8125rem;
-            flex-shrink: 0;
-            margin-left: 16px;
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(193, 95, 60, 0.35);
         }
 
-        /* 按钮 */
-        .btn {
-            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            border-radius: var(--radius-md);
-            font-size: 1rem;
-            font-family: inherit;
-            cursor: pointer;
-            transition: all 0.2s;
-            width: 100%;
-            font-weight: 600;
-            box-shadow: var(--shadow-md);
-        }
-
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .btn:active {
+        .btn-primary:active:not(:disabled) {
             transform: translateY(0);
         }
 
-        .btn:disabled {
-            background: var(--border-color);
-            color: var(--text-muted);
+        .btn-primary:disabled {
+            opacity: 0.6;
             cursor: not-allowed;
             transform: none;
-            box-shadow: none;
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            transition: all 0.3s ease;
         }
 
-        /* 进度条 */
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: var(--bg-secondary);
-            border-radius: 3px;
-            margin: 20px 0;
-            overflow: hidden;
-            display: none;
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(34, 197, 94, 0.35);
         }
 
-        .progress-bar.show {
-            display: block;
+        .upload-area {
+            border: 2px dashed rgba(177, 173, 161, 0.5);
+            background: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
         }
 
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 3px;
+        .upload-area:hover {
+            border-color: rgba(193, 95, 60, 0.6);
+            background: rgba(193, 95, 60, 0.08);
         }
 
-        /* 状态消息 */
-        .status {
-            padding: 16px 20px;
-            border-radius: var(--radius-md);
-            text-align: center;
-            font-weight: 500;
-            font-size: 0.9375rem;
-            display: none;
-            margin-top: 20px;
-            border: 1px solid;
+        .upload-area.dragover {
+            border-color: #C15F3C;
+            background: rgba(193, 95, 60, 0.15);
+            transform: scale(1.01);
         }
 
-        .status.loading {
-            background: var(--warning-bg);
-            color: var(--warning-text);
-            border-color: var(--warning-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+        .file-item {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(177, 173, 161, 0.3);
+            animation: fadeInUp 0.3s ease-out;
         }
 
-        .status.success {
-            background: var(--success-bg);
-            color: var(--success-text);
-            border-color: var(--success-border);
-            display: block;
+        .status-loading {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #b45309;
         }
 
-        .status.error {
-            background: var(--error-bg);
-            color: var(--error-text);
-            border-color: var(--error-border);
-            display: block;
+        .status-success {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #15803d;
         }
 
-        /* 加载动画 */
-        .spinner {
-            width: 18px;
-            height: 18px;
-            border: 2px solid var(--warning-border);
-            border-top-color: var(--warning-text);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* 下载区域 */
-        .download-section {
-            margin-top: 32px;
-            display: none;
-        }
-
-        .download-section.show {
-            display: block;
-        }
-
-        .download-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .download-header-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            background: var(--success-bg);
-            border-radius: var(--radius-sm);
-        }
-
-        .download-header-icon svg {
-            width: 20px;
-            height: 20px;
-            color: var(--success-text);
-        }
-
-        .download-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: var(--text-primary);
+        .status-error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #b91c1c;
         }
 
         .download-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 16px 20px;
-            border-radius: var(--radius-md);
-            text-decoration: none;
-            font-weight: 500;
-            margin-bottom: 8px;
-            transition: all 0.2s;
-            cursor: pointer;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(177, 173, 161, 0.3);
+            transition: all 0.3s ease;
         }
 
         .download-link:hover {
-            border-color: var(--accent-primary);
-            background: var(--accent-light);
+            border-color: rgba(193, 95, 60, 0.5);
+            background: rgba(193, 95, 60, 0.1);
         }
 
-        .download-link svg {
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
             width: 20px;
             height: 20px;
-            color: var(--accent-primary);
-            flex-shrink: 0;
+            animation: spin 0.8s linear infinite;
         }
 
-        .download-link span {
-            flex: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .spinner-dark {
+            border: 3px solid rgba(193, 95, 60, 0.2);
+            border-top: 3px solid #C15F3C;
         }
 
-        #downloadAllBtn {
-            margin-bottom: 16px;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        @media (max-width: 768px) {
-            .page-wrapper {
-                padding: 24px 16px 60px;
-            }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
 
-            h1 {
-                font-size: 1.5rem;
-            }
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
 
-            .upload-area {
-                padding: 32px 20px;
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
             }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-            .file-item {
-                padding: 12px 16px;
-            }
+        .fade-in {
+            animation: fadeInUp 0.5s ease-out;
+        }
 
-            .btn {
-                padding: 14px 24px;
-            }
+        .progress-bar {
+            background: rgba(177, 173, 161, 0.3);
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #C15F3C 0%, #da7756 100%);
+            transition: width 0.3s ease;
+        }
+
+        .back-link {
+            transition: all 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: #C15F3C;
         }
     </style>
 </head>
-<body>
-    <div class="top-accent"></div>
-    
-    <div class="page-wrapper">
-        <a href="index.html" class="back-link">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+<body class="flex items-center justify-center p-4 py-8">
+    <!-- 背景装饰 -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-[#C15F3C]/20 to-transparent rounded-full mix-blend-multiply filter blur-xl opacity-40 floating"></div>
+        <div class="absolute top-40 right-10 w-72 h-72 bg-gradient-to-br from-[#da7756]/20 to-transparent rounded-full mix-blend-multiply filter blur-xl opacity-40 floating" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-20 left-1/2 w-72 h-72 bg-gradient-to-br from-[#B1ADA1]/20 to-transparent rounded-full mix-blend-multiply filter blur-xl opacity-40 floating" style="animation-delay: 4s;"></div>
+    </div>
+
+    <!-- 主卡片 -->
+    <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-2xl relative z-10">
+        <!-- 返回链接 -->
+        <a href="index.html" class="back-link inline-flex items-center gap-2 text-[#5D5D5A] text-sm font-medium mb-6">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
             返回首页
         </a>
 
-        <div class="header">
-            <div class="header-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <!-- 标题 -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#C15F3C] to-[#da7756] mb-4 shadow-lg">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 0v1.5c0 .621-.504 1.125-1.125 1.125m1.125-2.625c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 18.375h7.5" />
                 </svg>
             </div>
-            <h1>投资管理人估值表处理工具</h1>
-            <p class="subtitle">上传 Excel 文件，自动完成数据整理</p>
+            <h1 class="text-2xl md:text-3xl font-bold text-[#141413] mb-2">投资管理人估值表处理工具</h1>
+            <p class="text-[#B1ADA1] text-base">上传 Excel 文件，自动完成数据整理</p>
         </div>
 
-        <div class="upload-area" id="uploadArea">
-            <div class="upload-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <!-- 上传区域 -->
+        <div class="upload-area rounded-2xl p-8 text-center cursor-pointer mb-6" id="uploadArea">
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[#B1ADA1]/20 mb-4">
+                <svg class="w-7 h-7 text-[#5D5D5A]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                 </svg>
             </div>
-            <div class="upload-text">点击或拖拽文件到此处上传</div>
-            <div class="upload-hint">支持 .xlsx, .xls 格式</div>
-            <input type="file" id="fileInput" multiple accept=".xlsx,.xls">
+            <p class="text-[#141413] font-medium mb-1">点击或拖拽文件到此处上传</p>
+            <p class="text-[#B1ADA1] text-sm">支持 .xlsx, .xls 格式</p>
+            <input type="file" id="fileInput" multiple accept=".xlsx,.xls" class="hidden">
         </div>
 
-        <div class="file-list" id="fileList"></div>
+        <!-- 文件列表 -->
+        <div class="space-y-2 mb-6" id="fileList"></div>
 
-        <div class="progress-bar" id="progressBar">
-            <div class="progress-fill" id="progressFill"></div>
+        <!-- 进度条 -->
+        <div class="progress-bar h-1.5 rounded-full overflow-hidden mb-6 hidden" id="progressBar">
+            <div class="progress-fill h-full w-0 rounded-full" id="progressFill"></div>
         </div>
 
-        <button class="btn" id="processBtn" disabled>开始处理</button>
+        <!-- 处理按钮 -->
+        <button class="btn-primary w-full py-4 px-6 rounded-xl text-white font-semibold text-base flex items-center justify-center gap-2 cursor-pointer" id="processBtn" disabled>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+            </svg>
+            <span id="processBtnText">开始处理</span>
+            <div id="processBtnSpinner" class="spinner hidden"></div>
+        </button>
 
-        <div class="status" id="status"></div>
+        <!-- 状态消息 -->
+        <div class="status-loading rounded-xl p-4 mt-6 hidden" id="status">
+            <div class="flex items-center justify-center gap-3">
+                <div class="spinner-dark spinner"></div>
+                <span id="statusText">正在加载...</span>
+            </div>
+        </div>
 
-        <div class="download-section" id="downloadSection">
-            <div class="download-header">
-                <div class="download-header-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <!-- 下载区域 -->
+        <div class="mt-8 hidden" id="downloadSection">
+            <div class="flex items-center gap-3 mb-4 pb-4 border-b border-[#B1ADA1]/30">
+                <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <div class="download-title">处理完成</div>
+                <span class="text-[#141413] font-semibold">处理完成</span>
             </div>
-            <button class="btn btn-success" id="downloadAllBtn" style="display: none;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;">
+            
+            <button class="btn-success w-full py-3.5 px-6 rounded-xl text-white font-semibold text-sm mb-4 hidden flex items-center justify-center gap-2 cursor-pointer" id="downloadAllBtn">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                 </svg>
-                一键全部下载
+                <span>一键全部下载</span>
             </button>
-            <div id="downloadLinks"></div>
+            
+            <div class="space-y-2" id="downloadLinks"></div>
         </div>
     </div>
 
@@ -528,52 +282,42 @@
         // 初始化 Pyodide
         async function initPyodide() {
             const statusEl = document.getElementById('status');
-            statusEl.className = 'status loading';
-            statusEl.innerHTML = '<div class="spinner"></div><span>正在加载 Pyodide 环境...</span>';
-            statusEl.style.display = 'flex';
+            const statusText = document.getElementById('statusText');
+            statusEl.className = 'status-loading rounded-xl p-4 mt-6 flex items-center justify-center gap-3';
+            statusText.textContent = '正在加载 Pyodide 环境...';
 
             try {
                 pyodide = await loadPyodide({
                     indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"
                 });
 
-                // 安装 pandas、openpyxl 和 xlrd
-                statusEl.innerHTML = '<div class="spinner"></div><span>正在安装依赖包...</span>';
+                statusText.textContent = '正在安装依赖包...';
                 await pyodide.loadPackage(['micropip']);
                 const micropip = pyodide.pyimport('micropip');
                 
-                // 先尝试使用 loadPackage 安装 xlrd（如果 Pyodide 内置了的话）
                 try {
                     await pyodide.loadPackage('xlrd');
-                    console.log('✓ xlrd 通过 loadPackage 安装成功');
-                } catch (e) {
-                    console.log('xlrd 不在 Pyodide 内置包中，将通过 micropip 安装');
-                }
+                } catch (e) {}
                 
-                // 安装必要的包
                 await micropip.install(['pandas', 'openpyxl', 'xlrd']);
                 
-                // 验证安装
                 pyodide.runPython(`
                     import pandas as pd
                     import openpyxl
                     try:
                         import xlrd
-                        print(f"pandas 版本: {pd.__version__}")
-                        print(f"openpyxl 版本: {openpyxl.__version__}")
-                        print(f"xlrd 版本: {xlrd.__version__}")
                     except ImportError:
-                        print("警告: xlrd 未正确安装")
+                        pass
                 `);
 
-                statusEl.className = 'status success';
-                statusEl.textContent = '环境加载完成，可以开始处理文件';
+                statusEl.className = 'status-success rounded-xl p-4 mt-6';
+                statusEl.innerHTML = '<div class="flex items-center justify-center gap-3"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span>环境加载完成，可以开始处理文件</span></div>';
                 setTimeout(() => {
-                    statusEl.style.display = 'none';
-                }, 2000);
+                    statusEl.classList.add('hidden');
+                }, 2500);
             } catch (error) {
-                statusEl.className = 'status error';
-                statusEl.textContent = '加载失败: ' + error.message;
+                statusEl.className = 'status-error rounded-xl p-4 mt-6';
+                statusEl.innerHTML = '<span>加载失败: ' + error.message + '</span>';
             }
         }
 
@@ -583,89 +327,31 @@
             try {
                 let logicLoaded = false;
                 
-                // 先加载 logic.py（如果存在）
                 try {
-                    console.log('正在加载 logic.py...');
                     const logicResponse = await fetch('logic.py');
-                    console.log('logic.py 响应状态:', logicResponse.status, logicResponse.statusText);
-                    
                     if (logicResponse.ok) {
                         const logicScript = await logicResponse.text();
-                        console.log('logic.py 内容长度:', logicScript.length);
-                        
-                        try {
-                            pyodide.FS.writeFile('logic.py', logicScript);
-                            console.log('✓ logic.py 已写入文件系统');
-                            
-                            const fileInfo = pyodide.FS.analyzePath('logic.py');
-                            if (fileInfo.exists) {
-                                logicLoaded = true;
-                                console.log('✓ logic.py 文件已确认存在');
-                            } else {
-                                throw new Error('logic.py 写入文件系统失败');
-                            }
-                        } catch (fsError) {
-                            errorMessage = `将 logic.py 写入文件系统时出错: ${fsError.message || fsError.toString()}`;
-                            console.error('写入 logic.py 失败:', fsError);
-                            throw new Error(errorMessage);
-                        }
-                    } else {
-                        console.warn('logic.py 不存在或无法访问 (HTTP ' + logicResponse.status + ')');
+                        pyodide.FS.writeFile('logic.py', logicScript);
+                        const fileInfo = pyodide.FS.analyzePath('logic.py');
+                        if (fileInfo.exists) logicLoaded = true;
                     }
-                } catch (logicError) {
-                    console.error('logic.py 加载失败:', logicError);
-                }
+                } catch (logicError) {}
                 
-                // 然后加载 process.py
-                console.log('正在加载 process.py...');
                 const response = await fetch('process.py');
-                console.log('process.py 响应状态:', response.status, response.statusText);
-                
                 if (!response.ok) {
-                    errorMessage = `无法加载 process.py: HTTP ${response.status} ${response.statusText}`;
-                    throw new Error(errorMessage);
+                    throw new Error(`无法加载 process.py: HTTP ${response.status}`);
                 }
                 
                 const script = await response.text();
-                console.log('process.py 内容长度:', script.length);
                 
-                if (script.includes('from logic import') || script.includes('import logic')) {
-                    if (!logicLoaded) {
-                        errorMessage = 'process.py 需要 logic.py，但 logic.py 加载失败。请确保 logic.py 文件与 process.py 在同一目录下。';
-                        throw new Error(errorMessage);
-                    }
+                if ((script.includes('from logic import') || script.includes('import logic')) && !logicLoaded) {
+                    throw new Error('process.py 需要 logic.py，但 logic.py 加载失败。');
                 }
                 
-                try {
-                    pyodide.runPython(script);
-                    console.log('✓ process.py 加载并执行成功');
-                    return { success: true };
-                } catch (pyError) {
-                    errorMessage = `执行 process.py 时出错: ${pyError.message || pyError.toString()}`;
-                    console.error('执行 process.py 失败:', pyError);
-                    try {
-                        const pyErrorDetail = pyodide.runPython(`
-                            import sys
-                            import traceback
-                            if hasattr(sys, 'last_value') and sys.last_value:
-                                str(sys.last_value) + '\\n' + ''.join(traceback.format_exception(sys.last_type, sys.last_value, sys.last_traceback))
-                            else:
-                                None
-                        `);
-                        if (pyErrorDetail && pyErrorDetail.toString() !== 'None') {
-                            errorMessage += '\n' + pyErrorDetail.toString();
-                        }
-                    } catch (e) {
-                        console.warn('无法获取详细错误信息:', e);
-                    }
-                    throw new Error(errorMessage);
-                }
+                pyodide.runPython(script);
+                return { success: true };
             } catch (error) {
-                console.error('加载 Python 脚本失败:', error);
-                return { 
-                    success: false, 
-                    error: errorMessage || error.message || error.toString() 
-                };
+                return { success: false, error: error.message };
             }
         }
 
@@ -704,17 +390,17 @@
                 if (file.name.match(/\.(xlsx|xls)$/i)) {
                     uploadedFiles.push(file);
                     const fileItem = document.createElement('div');
-                    fileItem.className = 'file-item';
+                    fileItem.className = 'file-item rounded-xl p-4 flex items-center gap-3';
                     fileItem.innerHTML = `
-                        <div class="file-info">
-                            <div class="file-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                                </svg>
-                            </div>
-                            <span class="file-name">${file.name}</span>
+                        <div class="w-10 h-10 rounded-lg bg-[#C15F3C]/10 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-[#C15F3C]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                            </svg>
                         </div>
-                        <span class="file-size">${formatFileSize(file.size)}</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[#141413] font-medium text-sm truncate">${file.name}</p>
+                            <p class="text-[#B1ADA1] text-xs">${formatFileSize(file.size)}</p>
+                        </div>
                     `;
                     fileList.appendChild(fileItem);
                 }
@@ -736,31 +422,32 @@
             if (!pyodide || uploadedFiles.length === 0) return;
 
             const statusEl = document.getElementById('status');
+            const statusText = document.getElementById('statusText');
             const progressBar = document.getElementById('progressBar');
             const progressFill = document.getElementById('progressFill');
             const downloadSection = document.getElementById('downloadSection');
             const downloadLinks = document.getElementById('downloadLinks');
+            const processBtnText = document.getElementById('processBtnText');
+            const processBtnSpinner = document.getElementById('processBtnSpinner');
 
-            // 重置状态
-            downloadSection.classList.remove('show');
+            downloadSection.classList.add('hidden');
             downloadLinks.innerHTML = '';
             processedFiles = [];
 
-            // 加载 Python 脚本
-            statusEl.className = 'status loading';
-            statusEl.innerHTML = '<div class="spinner"></div><span>正在加载处理脚本...</span>';
-            statusEl.style.display = 'flex';
+            statusEl.className = 'status-loading rounded-xl p-4 mt-6';
+            statusEl.innerHTML = '<div class="flex items-center justify-center gap-3"><div class="spinner-dark spinner"></div><span>正在加载处理脚本...</span></div>';
 
             const scriptResult = await loadProcessScript();
             if (!scriptResult.success) {
-                statusEl.className = 'status error';
-                statusEl.textContent = '加载处理脚本失败: ' + (scriptResult.error || '未知错误');
-                statusEl.style.display = 'block';
+                statusEl.className = 'status-error rounded-xl p-4 mt-6';
+                statusEl.innerHTML = '<span>加载处理脚本失败: ' + scriptResult.error + '</span>';
                 return;
             }
 
-            progressBar.classList.add('show');
+            progressBar.classList.remove('hidden');
             processBtn.disabled = true;
+            processBtnText.classList.add('hidden');
+            processBtnSpinner.classList.remove('hidden');
 
             try {
                 for (let i = 0; i < uploadedFiles.length; i++) {
@@ -768,19 +455,14 @@
                     const progress = ((i + 1) / uploadedFiles.length) * 100;
                     progressFill.style.width = progress + '%';
 
-                    statusEl.innerHTML = `<div class="spinner"></div><span>正在处理: ${file.name} (${i + 1}/${uploadedFiles.length})</span>`;
+                    statusEl.innerHTML = `<div class="flex items-center justify-center gap-3"><div class="spinner-dark spinner"></div><span>正在处理: ${file.name} (${i + 1}/${uploadedFiles.length})</span></div>`;
 
-                    // 读取文件为 ArrayBuffer
                     const arrayBuffer = await file.arrayBuffer();
                     const uint8Array = new Uint8Array(arrayBuffer);
-
-                    // 清理文件名，避免特殊字符问题
                     const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
                     
-                    // 将文件数据传递给 Python
                     pyodide.FS.writeFile(safeFileName, uint8Array);
 
-                    // 调用 Python 处理函数
                     let outputFileName;
                     try {
                         pyodide.runPython(`
@@ -795,20 +477,8 @@
                                 if not os.path.exists(result):
                                     raise Exception(f"处理完成但输出文件不存在: {result}")
                                 _process_result = result
-                            except KeyError as e:
-                                try:
-                                    df_temp = pd.read_excel(r'${safeFileName.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')
-                                    available_cols = list(df_temp.columns)
-                                    error_msg = f"列不存在错误: {str(e)}\\n可用列名: {available_cols}"
-                                except:
-                                    error_msg = f"列不存在错误: {str(e)}"
-                                _process_error = error_msg
-                            except OSError as e:
-                                error_msg = f"文件系统错误 (errno {e.errno}): {str(e)}\\n{traceback.format_exc()}"
-                                _process_error = error_msg
                             except Exception as e:
-                                error_msg = f"{str(e)}\\n{traceback.format_exc()}"
-                                _process_error = error_msg
+                                _process_error = f"{str(e)}\\n{traceback.format_exc()}"
                         `);
                         
                         const processError = pyodide.runPython('_process_error if "_process_error" in globals() and _process_error is not None else None');
@@ -822,40 +492,13 @@
                         }
                         
                         outputFileName = String(resultPath);
-                        console.log('输出文件名:', outputFileName);
                     } catch (error) {
-                        try {
-                            pyodide.FS.unlink(safeFileName);
-                        } catch (e) {}
-                        
-                        let errorMsg = '';
-                        
-                        if (error.name === 'ErrnoError' || error.errno !== undefined) {
-                            errorMsg = `文件系统错误 (errno: ${error.errno || '未知'}): ${error.message || error.toString()}`;
-                        } else if (error.message) {
-                            errorMsg = error.message;
-                        } else {
-                            errorMsg = error.toString();
-                        }
-                        
-                        console.error('处理错误详情:', error);
-                        throw new Error(errorMsg);
+                        try { pyodide.FS.unlink(safeFileName); } catch (e) {}
+                        throw new Error(error.message || error.toString());
                     }
 
                     if (!outputFileName || outputFileName === 'undefined' || outputFileName === 'None') {
-                        throw new Error('无法获取输出文件名，处理可能失败');
-                    }
-                    
-                    let fileExists = false;
-                    try {
-                        const fileInfo = pyodide.FS.analyzePath(outputFileName);
-                        fileExists = fileInfo.exists;
-                    } catch (e) {
-                        fileExists = false;
-                    }
-                    
-                    if (!fileExists) {
-                        throw new Error(`输出文件 ${outputFileName} 不存在，文件保存可能失败`);
+                        throw new Error('无法获取输出文件名');
                     }
                     
                     let outputData;
@@ -881,80 +524,62 @@
                         if (outputFileName && pyodide.FS.analyzePath(outputFileName).exists) {
                             pyodide.FS.unlink(outputFileName);
                         }
-                    } catch (e) {
-                        console.warn('清理临时文件失败:', e);
-                    }
+                    } catch (e) {}
                 }
 
-                // 显示下载链接
-                downloadLinks.innerHTML = processedFiles.map((file, index) => {
+                downloadLinks.innerHTML = processedFiles.map((file) => {
                     const displayName = file.outputName || `processed_${file.originalName}`;
                     return `
-                        <a href="${file.url}" download="${displayName}" class="download-link">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                            </svg>
-                            <span>${displayName}</span>
+                        <a href="${file.url}" download="${displayName}" class="download-link rounded-xl p-4 flex items-center gap-3 cursor-pointer block">
+                            <div class="w-10 h-10 rounded-lg bg-[#C15F3C]/10 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-[#C15F3C]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                </svg>
+                            </div>
+                            <span class="flex-1 text-[#141413] font-medium text-sm truncate">${displayName}</span>
                         </a>
                     `;
                 }).join('');
 
                 const downloadAllBtn = document.getElementById('downloadAllBtn');
                 if (processedFiles.length > 1) {
-                    downloadAllBtn.style.display = 'block';
-                    downloadAllBtn.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                        </svg>
-                        一键全部下载 (${processedFiles.length} 个文件)
-                    `;
+                    downloadAllBtn.classList.remove('hidden');
+                    downloadAllBtn.querySelector('span').textContent = `一键全部下载 (${processedFiles.length} 个文件)`;
                 } else {
-                    downloadAllBtn.style.display = 'none';
+                    downloadAllBtn.classList.add('hidden');
                 }
 
-                downloadSection.classList.add('show');
-                progressBar.classList.remove('show');
-                statusEl.className = 'status success';
-                statusEl.textContent = `处理完成！共处理 ${uploadedFiles.length} 个文件`;
+                downloadSection.classList.remove('hidden');
+                progressBar.classList.add('hidden');
+                statusEl.className = 'status-success rounded-xl p-4 mt-6';
+                statusEl.innerHTML = `<div class="flex items-center justify-center gap-3"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span>处理完成！共处理 ${uploadedFiles.length} 个文件</span></div>`;
 
                 uploadedFiles = [];
                 fileList.innerHTML = '';
                 fileInput.value = '';
                 processBtn.disabled = false;
+                processBtnText.classList.remove('hidden');
+                processBtnSpinner.classList.add('hidden');
 
             } catch (error) {
-                progressBar.classList.remove('show');
-                statusEl.className = 'status error';
-                statusEl.textContent = '处理失败: ' + (error.message || error.toString() || '未知错误');
-                statusEl.style.display = 'block';
-                console.error('处理错误:', error);
+                progressBar.classList.add('hidden');
+                statusEl.className = 'status-error rounded-xl p-4 mt-6';
+                statusEl.innerHTML = '<span>处理失败: ' + (error.message || '未知错误') + '</span>';
                 processBtn.disabled = false;
-                
-                uploadedFiles.forEach(file => {
-                    const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-                    try {
-                        if (pyodide.FS.analyzePath(safeFileName).exists) {
-                            pyodide.FS.unlink(safeFileName);
-                        }
-                    } catch (e) {}
-                });
+                processBtnText.classList.remove('hidden');
+                processBtnSpinner.classList.add('hidden');
             }
         });
 
         // 一键全部下载功能
-        const downloadAllBtn = document.getElementById('downloadAllBtn');
-        downloadAllBtn.addEventListener('click', async () => {
-            if (processedFiles.length === 0) {
-                alert('没有可下载的文件');
-                return;
-            }
+        document.getElementById('downloadAllBtn').addEventListener('click', async () => {
+            if (processedFiles.length === 0) return;
 
+            const downloadAllBtn = document.getElementById('downloadAllBtn');
+            
             try {
                 downloadAllBtn.disabled = true;
-                downloadAllBtn.innerHTML = `
-                    <div class="spinner" style="width: 18px; height: 18px; border-color: rgba(255,255,255,0.3); border-top-color: white; margin-right: 8px; display: inline-block; vertical-align: middle;"></div>
-                    正在打包...
-                `;
+                downloadAllBtn.innerHTML = '<div class="spinner"></div><span>正在打包...</span>';
 
                 const zip = new JSZip();
 
@@ -980,27 +605,14 @@
                 zipLink.click();
                 document.body.removeChild(zipLink);
                 
-                setTimeout(() => {
-                    URL.revokeObjectURL(zipUrl);
-                }, 100);
+                setTimeout(() => URL.revokeObjectURL(zipUrl), 100);
 
                 downloadAllBtn.disabled = false;
-                downloadAllBtn.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                    </svg>
-                    一键全部下载 (${processedFiles.length} 个文件)
-                `;
+                downloadAllBtn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg><span>一键全部下载 (${processedFiles.length} 个文件)</span>`;
             } catch (error) {
-                console.error('打包失败:', error);
                 alert('打包失败: ' + error.message);
                 downloadAllBtn.disabled = false;
-                downloadAllBtn.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                    </svg>
-                    一键全部下载
-                `;
+                downloadAllBtn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg><span>一键全部下载</span>`;
             }
         });
 

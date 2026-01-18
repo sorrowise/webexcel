@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>质数工具集 - Prime Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Noto Serif SC', 'Source Han Serif SC', serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2522 50%, #1a1a1a 100%);
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(244, 243, 238, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(193, 95, 60, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-input {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(177, 173, 161, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .glass-input:focus {
+            border-color: rgba(193, 95, 60, 0.8);
+            box-shadow: 0 0 0 4px rgba(193, 95, 60, 0.15);
+            outline: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #C15F3C 0%, #da7756 100%);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(193, 95, 60, 0.35);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .tab-button {
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button:hover {
+            background: rgba(193, 95, 60, 0.15);
+        }
+
+        .tab-button.active {
+            background: rgba(193, 95, 60, 0.2);
+            border-bottom-color: #C15F3C;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
+            transform: scale(0.9);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .result-card.show {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .counter {
+            background: linear-gradient(135deg, #C15F3C 0%, #da7756 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .prime-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
+            background: linear-gradient(135deg, #C15F3C 0%, #da7756 100%);
+            color: white;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            animation: popIn 0.3s ease-out backwards;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .check-animation {
+            animation: checkBounce 0.6s ease-out;
+        }
+
+        @keyframes checkBounce {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .primes-container {
+            max-height: 400px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(102, 126, 234, 0.5) rgba(255, 255, 255, 0.3);
+        }
+
+        .primes-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .primes-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .primes-container::-webkit-scrollbar-thumb {
+            background: rgba(193, 95, 60, 0.5);
+            border-radius: 4px;
+        }
+
+        .primes-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(193, 95, 60, 0.7);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 640px) {
+            .glass-card {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            .tab-button {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4 py-8">
+    <!-- 背景装饰 -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-[#C15F3C]/20 to-transparent rounded-full mix-blend-multiply filter blur-xl opacity-40 floating"></div>
+        <div class="absolute top-40 right-10 w-72 h-72 bg-gradient-to-br from-[#da7756]/20 to-transparent rounded-full mix-blend-multiply filter blur-xl opacity-40 floating" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-20 left-1/2 w-72 h-72 bg-gradient-to-br from-[#B1ADA1]/20 to-transparent rounded-full mix-blend-multiply filter blur-xl opacity-40 floating" style="animation-delay: 4s;"></div>
+    </div>
+
+    <!-- 主卡片 -->
+    <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-3xl relative z-10">
+        <!-- 返回链接 -->
+        <a href="index.html" class="inline-flex items-center gap-2 text-[#5D5D5A] text-sm font-medium mb-6 hover:text-[#C15F3C] transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+            返回首页
+        </a>
+
+        <!-- 标题 -->
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#C15F3C]/20 mb-4">
+                <svg class="w-8 h-8 text-[#C15F3C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-[#141413] mb-2">质数工具集</h1>
+            <p class="text-[#B1ADA1] text-lg">计算、判断和列出质数</p>
+        </div>
+
+        <!-- 标签页导航 -->
+        <div class="flex flex-wrap gap-1 mb-6 bg-[#B1ADA1]/20 rounded-2xl p-1">
+            <button class="tab-button active flex-1 py-3 px-4 rounded-xl text-[#141413] font-semibold" onclick="switchTab('count')">
+                <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                计数
+            </button>
+            <button class="tab-button flex-1 py-3 px-4 rounded-xl text-[#141413] font-semibold" onclick="switchTab('check')">
+                <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                判断
+            </button>
+            <button class="tab-button flex-1 py-3 px-4 rounded-xl text-[#141413] font-semibold" onclick="switchTab('list')">
+                <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                </svg>
+                列出
+            </button>
+        </div>
+
+        <!-- 标签页 1: 计数 -->
+        <div id="tab-count" class="tab-content active">
+            <div class="space-y-6">
+                <div>
+                    <label for="countInput" class="block text-[#141413] font-semibold mb-3 text-lg">
+                        请输入数字 n
+                    </label>
+                    <input
+                        type="number"
+                        id="countInput"
+                        class="glass-input w-full px-6 py-4 rounded-2xl text-lg text-gray-800 placeholder-gray-400"
+                        placeholder="例如：100"
+                        min="2"
+                        onkeypress="handleKeyPress(event, 'count')"
+                    >
+                    <p class="text-[#B1ADA1] text-sm mt-2">建议范围：2 - 10,000,000</p>
+                </div>
+
+                <button
+                    id="countBtn"
+                    onclick="calculateCount()"
+                    class="btn-primary w-full py-4 px-8 rounded-2xl text-white font-bold text-lg cursor-pointer shadow-lg"
+                >
+                    <span id="countBtnText">开始计算</span>
+                    <div id="countBtnSpinner" class="spinner mx-auto hidden"></div>
+                </button>
+            </div>
+
+            <!-- 错误提示 -->
+            <div id="countError" class="hidden mt-6 p-4 bg-red-500/20 backdrop-blur-sm border border-red-400/30 rounded-xl">
+                <p class="text-[#141413] text-center font-medium" id="countErrorText"></p>
+            </div>
+
+            <!-- 结果卡片 -->
+            <div id="countResult" class="result-card mt-8 rounded-2xl p-6 md:p-8">
+                <div class="text-center">
+                    <p class="text-gray-600 text-lg mb-2">在 <span id="countResultNumber" class="font-bold text-gray-800"></span> 以内</p>
+                    <div class="mb-4">
+                        <span class="text-6xl md:text-7xl font-extrabold counter" id="primeCount">0</span>
+                    </div>
+                    <p class="text-gray-600 text-xl">个质数</p>
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <p class="text-gray-500 text-sm">计算耗时：<span id="countTime" class="font-semibold text-gray-700"></span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 标签页 2: 判断 -->
+        <div id="tab-check" class="tab-content">
+            <div class="space-y-6">
+                <div>
+                    <label for="checkInput" class="block text-[#141413] font-semibold mb-3 text-lg">
+                        请输入要判断的数字
+                    </label>
+                    <input
+                        type="number"
+                        id="checkInput"
+                        class="glass-input w-full px-6 py-4 rounded-2xl text-lg text-gray-800 placeholder-gray-400"
+                        placeholder="例如：17"
+                        min="2"
+                        onkeypress="handleKeyPress(event, 'check')"
+                    >
+                    <p class="text-[#B1ADA1] text-sm mt-2">支持范围：2 - 10^18（一千万亿）</p>
+                </div>
+
+                <button
+                    id="checkBtn"
+                    onclick="checkPrime()"
+                    class="btn-primary w-full py-4 px-8 rounded-2xl text-white font-bold text-lg cursor-pointer shadow-lg"
+                >
+                    <span id="checkBtnText">判断质数</span>
+                    <div id="checkBtnSpinner" class="spinner mx-auto hidden"></div>
+                </button>
+            </div>
+
+            <!-- 错误提示 -->
+            <div id="checkError" class="hidden mt-6 p-4 bg-red-500/20 backdrop-blur-sm border border-red-400/30 rounded-xl">
+                <p class="text-[#141413] text-center font-medium" id="checkErrorText"></p>
+            </div>
+
+            <!-- 结果卡片 -->
+            <div id="checkResult" class="result-card mt-8 rounded-2xl p-6 md:p-8">
+                <div class="text-center">
+                    <div id="checkIcon" class="text-8xl mb-4"></div>
+                    <p class="text-3xl font-bold mb-2" id="checkTitle"></p>
+                    <p class="text-gray-600 text-lg" id="checkMessage"></p>
+                    <div id="checkDetails" class="mt-6 pt-6 border-t border-gray-200 hidden">
+                        <p class="text-gray-500 text-sm" id="checkDetailsText"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 标签页 3: 列出 -->
+        <div id="tab-list" class="tab-content">
+            <div class="space-y-6">
+                <div>
+                    <label for="listInput" class="block text-[#141413] font-semibold mb-3 text-lg">
+                        请输入数字 n
+                    </label>
+                    <input
+                        type="number"
+                        id="listInput"
+                        class="glass-input w-full px-6 py-4 rounded-2xl text-lg text-gray-800 placeholder-gray-400"
+                        placeholder="例如：100"
+                        min="2"
+                        onkeypress="handleKeyPress(event, 'list')"
+                    >
+                    <p class="text-[#B1ADA1] text-sm mt-2">建议范围：2 - 1,000,000（一百万以内）</p>
+                </div>
+
+                <button
+                    id="listBtn"
+                    onclick="listPrimes()"
+                    class="btn-primary w-full py-4 px-8 rounded-2xl text-white font-bold text-lg cursor-pointer shadow-lg"
+                >
+                    <span id="listBtnText">列出所有质数</span>
+                    <div id="listBtnSpinner" class="spinner mx-auto hidden"></div>
+                </button>
+            </div>
+
+            <!-- 错误提示 -->
+            <div id="listError" class="hidden mt-6 p-4 bg-red-500/20 backdrop-blur-sm border border-red-400/30 rounded-xl">
+                <p class="text-[#141413] text-center font-medium" id="listErrorText"></p>
+            </div>
+
+            <!-- 结果卡片 -->
+            <div id="listResult" class="result-card mt-8 rounded-2xl p-6 md:p-8">
+                <div class="text-center mb-4">
+                    <p class="text-gray-600 text-lg mb-2">在 <span id="listResultNumber" class="font-bold text-gray-800"></span> 以内</p>
+                    <p class="text-gray-600 text-xl">共有 <span id="listCount" class="font-bold counter">0</span> 个质数</p>
+                </div>
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <div class="primes-container" id="primesList"></div>
+                </div>
+                <div class="mt-6 pt-6 border-t border-gray-200 text-center">
+                    <p class="text-gray-500 text-sm">计算耗时：<span id="listTime" class="font-semibold text-gray-700"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'count';
+
+        function switchTab(tab) {
+            currentTab = tab;
+
+            // 更新标签按钮状态
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.closest('.tab-button').classList.add('active');
+
+            // 更新标签内容显示
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`tab-${tab}`).classList.add('active');
+
+            // 隐藏所有结果
+            hideAllResults();
+
+            // 聚焦到对应输入框
+            setTimeout(() => {
+                document.getElementById(`${tab}Input`).focus();
+            }, 100);
+        }
+
+        function hideAllResults() {
+            ['countResult', 'checkResult', 'listResult'].forEach(id => {
+                document.getElementById(id).classList.remove('show');
+            });
+            ['countError', 'checkError', 'listError'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+        }
+
+        function handleKeyPress(event, tab) {
+            if (event.key === 'Enter') {
+                if (tab === 'count') calculateCount();
+                else if (tab === 'check') checkPrime();
+                else if (tab === 'list') listPrimes();
+            }
+        }
+
+        function showError(type, message) {
+            const errorDiv = document.getElementById(`${type}Error`);
+            const errorText = document.getElementById(`${type}ErrorText`);
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        function setButtonLoading(type, loading) {
+            const btn = document.getElementById(`${type}Btn`);
+            const btnText = document.getElementById(`${type}BtnText`);
+            const btnSpinner = document.getElementById(`${type}BtnSpinner`);
+
+            btn.disabled = loading;
+            if (loading) {
+                btnText.classList.add('hidden');
+                btnSpinner.classList.remove('hidden');
+            } else {
+                btnText.classList.remove('hidden');
+                btnSpinner.classList.add('hidden');
+            }
+        }
+
+        function countPrimes(n) {
+            if (n < 2) return 0;
+
+            const sieve = new Array(n + 1).fill(true);
+            sieve[0] = sieve[1] = false;
+
+            for (let i = 2; i * i <= n; i++) {
+                if (sieve[i]) {
+                    for (let j = i * i; j <= n; j += i) {
+                        sieve[j] = false;
+                    }
+                }
+            }
+
+            return sieve.filter(isPrime => isPrime).length;
+        }
+
+        function getPrimes(n) {
+            if (n < 2) return [];
+
+            const sieve = new Array(n + 1).fill(true);
+            sieve[0] = sieve[1] = false;
+
+            for (let i = 2; i * i <= n; i++) {
+                if (sieve[i]) {
+                    for (let j = i * i; j <= n; j += i) {
+                        sieve[j] = false;
+                    }
+                }
+            }
+
+            const primes = [];
+            for (let i = 2; i <= n; i++) {
+                if (sieve[i]) primes.push(i);
+            }
+            return primes;
+        }
+
+        function isPrime(n) {
+            if (n < 2) return false;
+            if (n === 2 || n === 3) return true;
+            if (n % 2 === 0 || n % 3 === 0) return false;
+
+            let i = 5;
+            let w = 2;
+            while (i * i <= n) {
+                if (n % i === 0) return false;
+                i += w;
+                w = 6 - w;
+            }
+            return true;
+        }
+
+        function animateValue(element, start, end, duration) {
+            const startTime = performance.now();
+            const diff = end - start;
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const current = Math.floor(start + diff * easeOut);
+
+                element.textContent = current.toLocaleString();
+
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                } else {
+                    element.textContent = end.toLocaleString();
+                }
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        async function calculateCount() {
+            const input = document.getElementById('countInput');
+            const n = parseInt(input.value);
+
+            if (!input.value || isNaN(n)) {
+                showError('count', '请输入一个有效的数字');
+                input.focus();
+                return;
+            }
+
+            if (n < 2) {
+                showError('count', '请输入大于或等于 2 的数字');
+                input.focus();
+                return;
+            }
+
+            if (n > 100000000) {
+                showError('count', '数字太大，请输入小于 100,000,000 的数字');
+                input.focus();
+                return;
+            }
+
+            document.getElementById('countResult').classList.remove('show');
+            document.getElementById('countError').classList.add('hidden');
+            setButtonLoading('count', true);
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const startTime = performance.now();
+            const count = countPrimes(n);
+            const endTime = performance.now();
+            const calculationTime = ((endTime - startTime) / 1000).toFixed(4);
+
+            document.getElementById('countResultNumber').textContent = n.toLocaleString();
+            document.getElementById('countTime').textContent = calculationTime + ' 秒';
+
+            const resultCard = document.getElementById('countResult');
+            resultCard.classList.add('show');
+
+            const primeCountElement = document.getElementById('primeCount');
+            animateValue(primeCountElement, 0, count, 1500);
+
+            setButtonLoading('count', false);
+        }
+
+        async function checkPrime() {
+            const input = document.getElementById('checkInput');
+            const n = parseInt(input.value);
+
+            if (!input.value || isNaN(n)) {
+                showError('check', '请输入一个有效的数字');
+                input.focus();
+                return;
+            }
+
+            if (n < 2) {
+                showError('check', '请输入大于或等于 2 的数字');
+                input.focus();
+                return;
+            }
+
+            document.getElementById('checkResult').classList.remove('show');
+            document.getElementById('checkError').classList.add('hidden');
+            setButtonLoading('check', true);
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const startTime = performance.now();
+            const prime = isPrime(n);
+            const endTime = performance.now();
+            const calculationTime = ((endTime - startTime) / 1000).toFixed(6);
+
+            const checkIcon = document.getElementById('checkIcon');
+            const checkTitle = document.getElementById('checkTitle');
+            const checkMessage = document.getElementById('checkMessage');
+            const checkDetails = document.getElementById('checkDetails');
+            const checkDetailsText = document.getElementById('checkDetailsText');
+
+            if (prime) {
+                checkIcon.innerHTML = '✓';
+                checkIcon.className = 'text-8xl mb-4 text-green-500 check-animation';
+                checkTitle.textContent = `${n} 是质数`;
+                checkTitle.className = 'text-3xl font-bold mb-2 text-green-600';
+                checkMessage.textContent = '这是一个只能被 1 和它本身整除的数';
+                checkMessage.className = 'text-gray-600 text-lg';
+            } else {
+                checkIcon.innerHTML = '✗';
+                checkIcon.className = 'text-8xl mb-4 text-red-500 check-animation';
+                checkTitle.textContent = `${n} 不是质数`;
+                checkTitle.className = 'text-3xl font-bold mb-2 text-red-600';
+
+                // 找到一个因数
+                let factor = null;
+                for (let i = 2; i <= Math.sqrt(n); i++) {
+                    if (n % i === 0) {
+                        factor = i;
+                        break;
+                    }
+                }
+                if (factor) {
+                    checkMessage.textContent = `${n} = ${factor} × ${n / factor}`;
+                } else {
+                    checkMessage.textContent = '这是一个合数';
+                }
+                checkMessage.className = 'text-gray-600 text-lg';
+            }
+
+            checkDetailsText.textContent = `计算耗时：${calculationTime} 秒`;
+            checkDetails.classList.remove('hidden');
+
+            const resultCard = document.getElementById('checkResult');
+            resultCard.classList.add('show');
+
+            setButtonLoading('check', false);
+        }
+
+        async function listPrimes() {
+            const input = document.getElementById('listInput');
+            const n = parseInt(input.value);
+
+            if (!input.value || isNaN(n)) {
+                showError('list', '请输入一个有效的数字');
+                input.focus();
+                return;
+            }
+
+            if (n < 2) {
+                showError('list', '请输入大于或等于 2 的数字');
+                input.focus();
+                return;
+            }
+
+            if (n > 10000000) {
+                showError('list', '数字太大，为避免浏览器卡顿，请输入小于 10,000,000 的数字');
+                input.focus();
+                return;
+            }
+
+            document.getElementById('listResult').classList.remove('show');
+            document.getElementById('listError').classList.add('hidden');
+            setButtonLoading('list', true);
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const startTime = performance.now();
+            const primes = getPrimes(n);
+            const endTime = performance.now();
+            const calculationTime = ((endTime - startTime) / 1000).toFixed(4);
+
+            document.getElementById('listResultNumber').textContent = n.toLocaleString();
+            document.getElementById('listTime').textContent = calculationTime + ' 秒';
+
+            const listCountElement = document.getElementById('listCount');
+            animateValue(listCountElement, 0, primes.length, 1000);
+
+            const primesList = document.getElementById('primesList');
+            primesList.innerHTML = '';
+
+            // 分批显示质数以避免阻塞 UI
+            const batchSize = 100;
+            for (let i = 0; i < primes.length; i += batchSize) {
+                const batch = primes.slice(i, i + batchSize);
+                const div = document.createElement('div');
+                div.className = 'flex flex-wrap gap-2 mb-2';
+                batch.forEach((prime, index) => {
+                    const badge = document.createElement('span');
+                    badge.className = 'prime-badge';
+                    badge.textContent = prime;
+                    badge.style.animationDelay = `${(index * 20)}ms`;
+                    div.appendChild(badge);
+                });
+                primesList.appendChild(div);
+
+                if (i % 500 === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
+            }
+
+            const resultCard = document.getElementById('listResult');
+            resultCard.classList.add('show');
+
+            setButtonLoading('list', false);
+        }
+
+        window.addEventListener('load', () => {
+            document.getElementById('countInput').focus();
+        });
+    </script>
+</body>
+</html>

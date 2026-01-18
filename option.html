@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>欧式期权定价计算器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Noto Serif SC', 'Source Han Serif SC', serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2522 50%, #1a1a1a 100%);
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(244, 243, 238, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(193, 95, 60, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-input {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(177, 173, 161, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .glass-input:focus {
+            border-color: rgba(193, 95, 60, 0.8);
+            box-shadow: 0 0 0 4px rgba(193, 95, 60, 0.15);
+            outline: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #C15F3C 0%, #da7756 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(193, 95, 60, 0.35);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(177, 173, 161, 0.3);
+        }
+
+        .result-call {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .result-put {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-loading {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #b45309;
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #b91c1c;
+        }
+
+        .spinner {
+            border: 3px solid rgba(193, 95, 60, 0.2);
+            border-top: 3px solid #C15F3C;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .back-link {
+            transition: all 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: #C15F3C;
+        }
+
+        /* 表格样式 */
+        .greeks-table {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .greeks-table th {
+            background: rgba(193, 95, 60, 0.1);
+        }
+
+        .greeks-table tr:hover {
+            background: rgba(193, 95, 60, 0.05);
+        }
+    </style>
+</head>
+<body class="p-4 py-8">
+    <!-- 背景装饰 -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-[#C15F3C]/20 to-transparent rounded-full mix-blend-multiply filter blur-xl opacity-40 floating"></div>
+        <div class="absolute top-40 right-10 w-72 h-72 bg-gradient-to-br from-[#da7756]/20 to-transparent rounded-full mix-blend-multiply filter blur-xl opacity-40 floating" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-20 left-1/2 w-72 h-72 bg-gradient-to-br from-[#B1ADA1]/20 to-transparent rounded-full mix-blend-multiply filter blur-xl opacity-40 floating" style="animation-delay: 4s;"></div>
+    </div>
+
+    <div class="max-w-6xl mx-auto relative z-10">
+        <!-- 主卡片 -->
+        <div class="glass-card rounded-3xl p-6 md:p-8">
+            <!-- 返回链接 -->
+            <a href="index.html" class="back-link inline-flex items-center gap-2 text-[#5D5D5A] text-sm font-medium mb-6">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                返回首页
+            </a>
+
+            <!-- 标题 -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#C15F3C]/20 mb-4">
+                    <svg class="w-8 h-8 text-[#C15F3C]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                    </svg>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-extrabold text-[#141413] mb-2">欧式期权定价计算器</h1>
+                <p class="text-[#B1ADA1] text-base">基于 Black-Scholes 模型计算期权价格与希腊字母</p>
+            </div>
+
+            <!-- 主体内容 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- 输入参数 -->
+                <div class="space-y-5">
+                    <h2 class="text-lg font-bold text-[#141413] flex items-center gap-2">
+                        <span class="w-1 h-6 bg-gradient-to-b from-[#C15F3C] to-[#da7756] rounded-full"></span>
+                        输入参数
+                    </h2>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-[#141413] mb-2">标的资产价格 (S)</label>
+                            <input type="number" id="S" value="100" step="0.01" class="glass-input w-full px-4 py-3 rounded-xl text-[#141413]" placeholder="如: 100">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-[#141413] mb-2">执行价格 (K)</label>
+                            <input type="number" id="K" value="100" step="0.01" class="glass-input w-full px-4 py-3 rounded-xl text-[#141413]" placeholder="如: 100">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-[#141413] mb-2">到期时间/年 (T)</label>
+                            <input type="number" id="T" value="1" step="0.01" class="glass-input w-full px-4 py-3 rounded-xl text-[#141413]" placeholder="如: 1">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-[#141413] mb-2">无风险利率 (r)</label>
+                            <input type="number" id="r" value="0.05" step="0.001" class="glass-input w-full px-4 py-3 rounded-xl text-[#141413]" placeholder="如: 0.05">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-[#141413] mb-2">波动率 (σ)</label>
+                            <input type="number" id="sigma" value="0.2" step="0.01" class="glass-input w-full px-4 py-3 rounded-xl text-[#141413]" placeholder="如: 0.2">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-[#141413] mb-2">股息率 (q)</label>
+                            <input type="number" id="q" value="0" step="0.001" class="glass-input w-full px-4 py-3 rounded-xl text-[#141413]" placeholder="如: 0">
+                        </div>
+                    </div>
+
+                    <button id="calculateBtn" onclick="calculateOption()" disabled class="btn-primary w-full py-4 rounded-xl text-white font-semibold text-base flex items-center justify-center gap-2 cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75V18m-7.5-6.75h.008v.008H8.25v-.008zm0 2.25h.008v.008H8.25V13.5zm0 2.25h.008v.008H8.25v-.008zm0 2.25h.008v.008H8.25V18zm2.498-6.75h.007v.008h-.007v-.008zm0 2.25h.007v.008h-.007V13.5zm0 2.25h.007v.008h-.007v-.008zm0 2.25h.007v.008h-.007V18zm2.504-6.75h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V13.5zm0 2.25h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V18zm2.498-6.75h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V13.5zM8.25 6h7.5v2.25h-7.5V6zM12 2.25c-1.892 0-3.758.11-5.593.322C5.307 2.7 4.5 3.65 4.5 4.757V19.5a2.25 2.25 0 002.25 2.25h10.5a2.25 2.25 0 002.25-2.25V4.757c0-1.108-.806-2.057-1.907-2.185A48.507 48.507 0 0012 2.25z" />
+                        </svg>
+                        计算期权价格
+                    </button>
+                </div>
+
+                <!-- 计算结果 -->
+                <div class="space-y-5">
+                    <h2 class="text-lg font-bold text-[#141413] flex items-center gap-2">
+                        <span class="w-1 h-6 bg-gradient-to-b from-green-500 to-teal-500 rounded-full"></span>
+                        计算结果
+                    </h2>
+
+                    <!-- 加载状态 -->
+                    <div id="loadingMsg" class="status-loading rounded-xl p-6 text-center">
+                        <div class="flex items-center justify-center gap-3">
+                            <div class="spinner"></div>
+                            <span>正在初始化计算环境...</span>
+                        </div>
+                    </div>
+
+                    <!-- 错误消息 -->
+                    <div id="errorMsg" class="status-error rounded-xl p-4 hidden">
+                        <p class="font-semibold mb-1">错误</p>
+                        <p id="errorText" class="text-sm"></p>
+                    </div>
+
+                    <!-- 初始提示 -->
+                    <div id="initialMsg" class="result-card rounded-xl p-8 text-center hidden">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-[#B1ADA1]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                        </svg>
+                        <p class="text-[#B1ADA1]">输入参数后点击计算按钮</p>
+                    </div>
+
+                    <!-- 结果显示 -->
+                    <div id="results" class="space-y-4 hidden">
+                        <!-- 期权价格 -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="result-call rounded-xl p-5">
+                                <p class="text-sm text-[#5D5D5A] font-medium mb-1">看涨期权价格</p>
+                                <p class="text-2xl font-bold text-green-700" id="callPrice">-</p>
+                            </div>
+                            <div class="result-put rounded-xl p-5">
+                                <p class="text-sm text-[#5D5D5A] font-medium mb-1">看跌期权价格</p>
+                                <p class="text-2xl font-bold text-red-700" id="putPrice">-</p>
+                            </div>
+                        </div>
+
+                        <!-- 希腊字母 -->
+                        <div class="greeks-table">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr>
+                                        <th class="px-4 py-3 text-left font-semibold text-[#141413]">指标</th>
+                                        <th class="px-4 py-3 text-left font-semibold text-[#141413]">看涨</th>
+                                        <th class="px-4 py-3 text-left font-semibold text-[#141413]">看跌</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-[#5D5D5A]">
+                                    <tr class="border-t border-[#B1ADA1]/20">
+                                        <td class="px-4 py-3 font-medium text-[#141413]">Delta (Δ)</td>
+                                        <td class="px-4 py-3 text-green-700 font-medium" id="delta_call">-</td>
+                                        <td class="px-4 py-3 text-red-700 font-medium" id="delta_put">-</td>
+                                    </tr>
+                                    <tr class="border-t border-[#B1ADA1]/20">
+                                        <td class="px-4 py-3 font-medium text-[#141413]">Gamma (Γ)</td>
+                                        <td class="px-4 py-3 font-medium" id="gamma">-</td>
+                                        <td class="px-4 py-3 font-medium" id="gamma2">-</td>
+                                    </tr>
+                                    <tr class="border-t border-[#B1ADA1]/20">
+                                        <td class="px-4 py-3 font-medium text-[#141413]">Vega (ν)</td>
+                                        <td class="px-4 py-3 text-[#C15F3C] font-medium" id="vega">-</td>
+                                        <td class="px-4 py-3 text-[#C15F3C] font-medium" id="vega2">-</td>
+                                    </tr>
+                                    <tr class="border-t border-[#B1ADA1]/20">
+                                        <td class="px-4 py-3 font-medium text-[#141413]">Theta (Θ)</td>
+                                        <td class="px-4 py-3 font-medium" id="theta_call">-</td>
+                                        <td class="px-4 py-3 font-medium" id="theta_put">-</td>
+                                    </tr>
+                                    <tr class="border-t border-[#B1ADA1]/20">
+                                        <td class="px-4 py-3 font-medium text-[#141413]">Rho (ρ)</td>
+                                        <td class="px-4 py-3 font-medium" id="rho_call">-</td>
+                                        <td class="px-4 py-3 font-medium" id="rho_put">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部说明 -->
+            <div class="mt-8 pt-6 border-t border-[#B1ADA1]/30 text-center">
+                <p class="text-[#B1ADA1] text-sm">Black-Scholes 模型假设标的资产价格服从几何布朗运动，计算结果仅供参考</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    <script>
+        let pyodide;
+
+        async function initPyodide() {
+            const loadingMsg = document.getElementById('loadingMsg');
+            const initialMsg = document.getElementById('initialMsg');
+            const errorMsg = document.getElementById('errorMsg');
+            const calculateBtn = document.getElementById('calculateBtn');
+
+            try {
+                pyodide = await loadPyodide({
+                    indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/'
+                });
+                
+                loadingMsg.innerHTML = '<div class="flex items-center justify-center gap-3"><div class="spinner"></div><span>正在加载计算库...</span></div>';
+                
+                await pyodide.loadPackage(['numpy', 'scipy']);
+                
+                const pythonCode = await fetch('option_pricer.py').then(r => r.text());
+                pyodide.runPython(pythonCode);
+                
+                loadingMsg.classList.add('hidden');
+                initialMsg.classList.remove('hidden');
+                calculateBtn.disabled = false;
+            } catch (error) {
+                console.error('初始化错误:', error);
+                loadingMsg.classList.add('hidden');
+                errorMsg.classList.remove('hidden');
+                document.getElementById('errorText').textContent = '加载失败: ' + error.message;
+            }
+        }
+
+        function formatNumber(num) {
+            if (num === null || num === undefined || isNaN(num)) return '-';
+            return num.toFixed(4);
+        }
+
+        async function calculateOption() {
+            if (!pyodide) {
+                alert('计算环境尚未初始化完成，请稍候...');
+                return;
+            }
+
+            const errorMsg = document.getElementById('errorMsg');
+            const initialMsg = document.getElementById('initialMsg');
+            const results = document.getElementById('results');
+
+            try {
+                const params = ['S', 'K', 'T', 'r', 'sigma', 'q'].map(id => parseFloat(document.getElementById(id).value));
+                
+                if (params.some(isNaN)) throw new Error('请输入所有参数');
+                if (params[0] <= 0 || params[1] <= 0 || params[2] <= 0 || params[4] <= 0) {
+                    throw new Error('标的价格、执行价格、到期时间和波动率必须大于0');
+                }
+
+                const pythonResult = pyodide.runPython(`result = calculate_option_price(${params.join(',')}); result`);
+                const resultObj = pythonResult.toJs({ dict_converter: Object.fromEntries });
+
+                if (!resultObj.success) throw new Error(resultObj.message);
+
+                initialMsg.classList.add('hidden');
+                errorMsg.classList.add('hidden');
+                results.classList.remove('hidden');
+
+                document.getElementById('callPrice').textContent = '$' + formatNumber(resultObj.call_price);
+                document.getElementById('putPrice').textContent = '$' + formatNumber(resultObj.put_price);
+
+                const g = resultObj.greeks;
+                document.getElementById('delta_call').textContent = formatNumber(g.delta_call);
+                document.getElementById('delta_put').textContent = formatNumber(g.delta_put);
+                document.getElementById('gamma').textContent = formatNumber(g.gamma);
+                document.getElementById('gamma2').textContent = formatNumber(g.gamma);
+                document.getElementById('vega').textContent = formatNumber(g.vega);
+                document.getElementById('vega2').textContent = formatNumber(g.vega);
+                document.getElementById('theta_call').textContent = formatNumber(g.theta_call);
+                document.getElementById('theta_put').textContent = formatNumber(g.theta_put);
+                document.getElementById('rho_call').textContent = formatNumber(g.rho_call);
+                document.getElementById('rho_put').textContent = formatNumber(g.rho_put);
+
+            } catch (error) {
+                console.error('计算错误:', error);
+                errorMsg.classList.remove('hidden');
+                document.getElementById('errorText').textContent = error.message;
+                results.classList.add('hidden');
+            }
+        }
+
+        window.addEventListener('load', initPyodide);
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('keypress', e => {
+                    if (e.key === 'Enter') calculateOption();
+                });
+            });
+        });
+    </script>
+</body>
+</html>
