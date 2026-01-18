@@ -4,7 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>投资管理人估值表处理工具</title>
+    <!-- 思源宋体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            /* Claude 风格配色 */
+            --bg-primary: #FAF9F7;
+            --bg-secondary: #F5F4F0;
+            --bg-card: #FFFFFF;
+            --text-primary: #1A1915;
+            --text-secondary: #5D5D5A;
+            --text-muted: #8B8B88;
+            --accent-primary: #D97706;
+            --accent-secondary: #B45309;
+            --accent-light: #FEF3C7;
+            --border-color: #E5E4E0;
+            --border-hover: #D1D0CC;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            
+            /* 状态颜色 */
+            --success-bg: #ECFDF5;
+            --success-text: #065F46;
+            --success-border: #A7F3D0;
+            --warning-bg: #FFFBEB;
+            --warning-text: #92400E;
+            --warning-border: #FDE68A;
+            --error-bg: #FEF2F2;
+            --error-text: #991B1B;
+            --error-border: #FECACA;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,133 +48,223 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Noto Serif SC', 'Source Han Serif SC', 'Source Han Serif', serif;
+            background: var(--bg-primary);
             min-height: 100vh;
-            padding: 20px;
+            color: var(--text-primary);
+            line-height: 1.6;
         }
 
-        .container {
-            max-width: 900px;
+        /* 顶部装饰条 */
+        .top-accent {
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+        }
+
+        .page-wrapper {
+            max-width: 720px;
             margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
+            padding: 40px 24px 80px;
         }
 
         .back-link {
-            display: inline-block;
-            color: #667eea;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
             text-decoration: none;
-            margin-bottom: 20px;
-            font-weight: 500;
-            transition: color 0.3s;
+            font-size: 0.9375rem;
+            margin-bottom: 32px;
+            transition: color 0.2s;
+            cursor: pointer;
         }
 
         .back-link:hover {
-            color: #764ba2;
+            color: var(--accent-primary);
+        }
+
+        .back-link svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            background: var(--accent-light);
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+        }
+
+        .header-icon svg {
+            width: 28px;
+            height: 28px;
+            color: var(--accent-primary);
         }
 
         h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 2.5em;
+            font-size: 1.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
         }
 
         .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 1.1em;
+            font-size: 1rem;
+            color: var(--text-secondary);
         }
 
+        /* 上传区域 */
         .upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            padding: 40px;
+            background: var(--bg-card);
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 48px 32px;
             text-align: center;
-            background: #f8f9ff;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
+            margin-bottom: 24px;
+            transition: all 0.2s ease;
             cursor: pointer;
         }
 
         .upload-area:hover {
-            border-color: #764ba2;
-            background: #f0f2ff;
+            border-color: var(--accent-primary);
+            background: var(--accent-light);
         }
 
         .upload-area.dragover {
-            border-color: #764ba2;
-            background: #e8ebff;
-            transform: scale(1.02);
+            border-color: var(--accent-primary);
+            background: var(--accent-light);
+            transform: scale(1.01);
         }
 
         .upload-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            background: var(--bg-secondary);
+            border-radius: 50%;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+
+        .upload-area:hover .upload-icon {
+            background: var(--accent-primary);
+        }
+
+        .upload-icon svg {
+            width: 28px;
+            height: 28px;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .upload-area:hover .upload-icon svg {
+            color: white;
         }
 
         .upload-text {
-            font-size: 1.2em;
-            color: #667eea;
-            margin-bottom: 10px;
+            font-size: 1.0625rem;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-weight: 500;
         }
 
         .upload-hint {
-            color: #999;
-            font-size: 0.9em;
+            color: var(--text-muted);
+            font-size: 0.875rem;
         }
 
         #fileInput {
             display: none;
         }
 
+        /* 文件列表 */
         .file-list {
-            margin-top: 20px;
+            margin-bottom: 24px;
         }
 
         .file-item {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .file-name {
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             flex: 1;
-            color: #333;
+            min-width: 0;
+        }
+
+        .file-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: var(--accent-light);
+            border-radius: var(--radius-sm);
+            flex-shrink: 0;
+        }
+
+        .file-icon svg {
+            width: 18px;
+            height: 18px;
+            color: var(--accent-primary);
+        }
+
+        .file-name {
+            color: var(--text-primary);
             font-weight: 500;
+            font-size: 0.9375rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .file-size {
-            color: #999;
-            font-size: 0.9em;
-            margin-left: 15px;
+            color: var(--text-muted);
+            font-size: 0.8125rem;
+            flex-shrink: 0;
+            margin-left: 16px;
         }
 
+        /* 按钮 */
         .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
             color: white;
             border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1.1em;
+            padding: 16px 32px;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-family: inherit;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.2s;
             width: 100%;
-            margin-top: 20px;
             font-weight: 600;
+            box-shadow: var(--shadow-md);
         }
 
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
         }
 
         .btn:active {
@@ -146,70 +272,24 @@
         }
 
         .btn:disabled {
-            background: #ccc;
+            background: var(--border-color);
+            color: var(--text-muted);
             cursor: not-allowed;
             transform: none;
+            box-shadow: none;
         }
 
-        .status {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            font-weight: 500;
-            display: none;
+        .btn-success {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
         }
 
-        .status.loading {
-            background: #fff3cd;
-            color: #856404;
-            display: block;
-        }
-
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            display: block;
-        }
-
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            display: block;
-        }
-
-        .download-section {
-            margin-top: 20px;
-            display: none;
-        }
-
-        .download-section.show {
-            display: block;
-        }
-
-        .download-link {
-            display: block;
-            background: #28a745;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            text-decoration: none;
-            font-weight: 600;
-            margin-top: 10px;
-            transition: background 0.3s;
-        }
-
-        .download-link:hover {
-            background: #218838;
-        }
-
+        /* 进度条 */
         .progress-bar {
             width: 100%;
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 4px;
-            margin-top: 10px;
+            height: 6px;
+            background: var(--bg-secondary);
+            border-radius: 3px;
+            margin: 20px 0;
             overflow: hidden;
             display: none;
         }
@@ -220,20 +300,191 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
             width: 0%;
-            transition: width 0.3s;
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+
+        /* 状态消息 */
+        .status {
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            text-align: center;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            display: none;
+            margin-top: 20px;
+            border: 1px solid;
+        }
+
+        .status.loading {
+            background: var(--warning-bg);
+            color: var(--warning-text);
+            border-color: var(--warning-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .status.success {
+            background: var(--success-bg);
+            color: var(--success-text);
+            border-color: var(--success-border);
+            display: block;
+        }
+
+        .status.error {
+            background: var(--error-bg);
+            color: var(--error-text);
+            border-color: var(--error-border);
+            display: block;
+        }
+
+        /* 加载动画 */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--warning-border);
+            border-top-color: var(--warning-text);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 下载区域 */
+        .download-section {
+            margin-top: 32px;
+            display: none;
+        }
+
+        .download-section.show {
+            display: block;
+        }
+
+        .download-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .download-header-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--success-bg);
+            border-radius: var(--radius-sm);
+        }
+
+        .download-header-icon svg {
+            width: 20px;
+            height: 20px;
+            color: var(--success-text);
+        }
+
+        .download-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .download-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .download-link:hover {
+            border-color: var(--accent-primary);
+            background: var(--accent-light);
+        }
+
+        .download-link svg {
+            width: 20px;
+            height: 20px;
+            color: var(--accent-primary);
+            flex-shrink: 0;
+        }
+
+        .download-link span {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #downloadAllBtn {
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .page-wrapper {
+                padding: 24px 16px 60px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .upload-area {
+                padding: 32px 20px;
+            }
+
+            .file-item {
+                padding: 12px 16px;
+            }
+
+            .btn {
+                padding: 14px 24px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <a href="index.html" class="back-link">← 返回首页</a>
-        <h1>📊 投资管理人估值表处理工具</h1>
+    <div class="top-accent"></div>
+    
+    <div class="page-wrapper">
+        <a href="index.html" class="back-link">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+            返回首页
+        </a>
+
+        <div class="header">
+            <div class="header-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 0v1.5c0 .621-.504 1.125-1.125 1.125m1.125-2.625c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 18.375h7.5" />
+                </svg>
+            </div>
+            <h1>投资管理人估值表处理工具</h1>
+            <p class="subtitle">上传 Excel 文件，自动完成数据整理</p>
+        </div>
 
         <div class="upload-area" id="uploadArea">
-            <div class="upload-icon">📁</div>
-            <div class="upload-text">点击或拖拽估值表 Excel 文件到此处</div>
+            <div class="upload-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                </svg>
+            </div>
+            <div class="upload-text">点击或拖拽文件到此处上传</div>
             <div class="upload-hint">支持 .xlsx, .xls 格式</div>
             <input type="file" id="fileInput" multiple accept=".xlsx,.xls">
         </div>
@@ -249,9 +500,19 @@
         <div class="status" id="status"></div>
 
         <div class="download-section" id="downloadSection">
-            <h3 style="margin-top: 20px; color: #333;">处理完成！</h3>
-            <button class="btn" id="downloadAllBtn" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); margin-bottom: 15px; display: none;">
-                📦 一键全部下载
+            <div class="download-header">
+                <div class="download-header-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="download-title">处理完成</div>
+            </div>
+            <button class="btn btn-success" id="downloadAllBtn" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                </svg>
+                一键全部下载
             </button>
             <div id="downloadLinks"></div>
         </div>
@@ -268,8 +529,8 @@
         async function initPyodide() {
             const statusEl = document.getElementById('status');
             statusEl.className = 'status loading';
-            statusEl.textContent = '正在加载 Pyodide 环境...';
-            statusEl.style.display = 'block';
+            statusEl.innerHTML = '<div class="spinner"></div><span>正在加载 Pyodide 环境...</span>';
+            statusEl.style.display = 'flex';
 
             try {
                 pyodide = await loadPyodide({
@@ -277,7 +538,7 @@
                 });
 
                 // 安装 pandas、openpyxl 和 xlrd
-                statusEl.textContent = '正在安装 pandas、openpyxl 和 xlrd...';
+                statusEl.innerHTML = '<div class="spinner"></div><span>正在安装依赖包...</span>';
                 await pyodide.loadPackage(['micropip']);
                 const micropip = pyodide.pyimport('micropip');
                 
@@ -290,8 +551,6 @@
                 }
                 
                 // 安装必要的包
-                // xlrd 用于读取 .xls 文件（旧版 Excel 格式）
-                // openpyxl 用于读取和写入 .xlsx 文件（新版 Excel 格式）
                 await micropip.install(['pandas', 'openpyxl', 'xlrd']);
                 
                 // 验证安装
@@ -308,7 +567,7 @@
                 `);
 
                 statusEl.className = 'status success';
-                statusEl.textContent = '✓ Pyodide 环境加载完成！';
+                statusEl.textContent = '环境加载完成，可以开始处理文件';
                 setTimeout(() => {
                     statusEl.style.display = 'none';
                 }, 2000);
@@ -334,13 +593,10 @@
                         const logicScript = await logicResponse.text();
                         console.log('logic.py 内容长度:', logicScript.length);
                         
-                        // 将 logic.py 写入到 Pyodide 文件系统，使其可以作为模块导入
                         try {
-                            // 写入到当前工作目录，这样 Python 可以找到它
                             pyodide.FS.writeFile('logic.py', logicScript);
                             console.log('✓ logic.py 已写入文件系统');
                             
-                            // 验证文件是否存在
                             const fileInfo = pyodide.FS.analyzePath('logic.py');
                             if (fileInfo.exists) {
                                 logicLoaded = true;
@@ -358,8 +614,6 @@
                     }
                 } catch (logicError) {
                     console.error('logic.py 加载失败:', logicError);
-                    // 检查 process.py 是否需要 logic.py
-                    // 先不抛出错误，等检查 process.py 后再决定
                 }
                 
                 // 然后加载 process.py
@@ -375,7 +629,6 @@
                 const script = await response.text();
                 console.log('process.py 内容长度:', script.length);
                 
-                // 检查脚本中是否导入了 logic
                 if (script.includes('from logic import') || script.includes('import logic')) {
                     if (!logicLoaded) {
                         errorMessage = 'process.py 需要 logic.py，但 logic.py 加载失败。请确保 logic.py 文件与 process.py 在同一目录下。';
@@ -383,7 +636,6 @@
                     }
                 }
                 
-                // 执行 process.py
                 try {
                     pyodide.runPython(script);
                     console.log('✓ process.py 加载并执行成功');
@@ -391,7 +643,6 @@
                 } catch (pyError) {
                     errorMessage = `执行 process.py 时出错: ${pyError.message || pyError.toString()}`;
                     console.error('执行 process.py 失败:', pyError);
-                    // 尝试获取更详细的 Python 错误信息
                     try {
                         const pyErrorDetail = pyodide.runPython(`
                             import sys
@@ -455,7 +706,14 @@
                     const fileItem = document.createElement('div');
                     fileItem.className = 'file-item';
                     fileItem.innerHTML = `
-                        <span class="file-name">${file.name}</span>
+                        <div class="file-info">
+                            <div class="file-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                </svg>
+                            </div>
+                            <span class="file-name">${file.name}</span>
+                        </div>
                         <span class="file-size">${formatFileSize(file.size)}</span>
                     `;
                     fileList.appendChild(fileItem);
@@ -490,8 +748,8 @@
 
             // 加载 Python 脚本
             statusEl.className = 'status loading';
-            statusEl.textContent = '正在加载处理脚本...';
-            statusEl.style.display = 'block';
+            statusEl.innerHTML = '<div class="spinner"></div><span>正在加载处理脚本...</span>';
+            statusEl.style.display = 'flex';
 
             const scriptResult = await loadProcessScript();
             if (!scriptResult.success) {
@@ -510,7 +768,7 @@
                     const progress = ((i + 1) / uploadedFiles.length) * 100;
                     progressFill.style.width = progress + '%';
 
-                    statusEl.textContent = `正在处理: ${file.name} (${i + 1}/${uploadedFiles.length})`;
+                    statusEl.innerHTML = `<div class="spinner"></div><span>正在处理: ${file.name} (${i + 1}/${uploadedFiles.length})</span>`;
 
                     // 读取文件为 ArrayBuffer
                     const arrayBuffer = await file.arrayBuffer();
@@ -525,7 +783,6 @@
                     // 调用 Python 处理函数
                     let outputFileName;
                     try {
-                        // 先执行处理，将结果存储到全局变量
                         pyodide.runPython(`
                             import sys
                             import traceback
@@ -533,15 +790,12 @@
                             _process_result = None
                             _process_error = None
                             try:
-                                # 传递原始文件名以保留中文
                                 original_name = r'${file.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"')}'
                                 result = process_excel(r'${safeFileName.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', original_name=original_name)
-                                # 验证结果文件是否存在
                                 if not os.path.exists(result):
                                     raise Exception(f"处理完成但输出文件不存在: {result}")
                                 _process_result = result
                             except KeyError as e:
-                                # 读取文件获取列名
                                 try:
                                     df_temp = pd.read_excel(r'${safeFileName.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')
                                     available_cols = list(df_temp.columns)
@@ -557,97 +811,53 @@
                                 _process_error = error_msg
                         `);
                         
-                        // 检查是否有错误
                         const processError = pyodide.runPython('_process_error if "_process_error" in globals() and _process_error is not None else None');
                         if (processError && processError.toString() !== 'None') {
                             throw new Error(processError.toString());
                         }
                         
-                        // 获取结果
                         const resultPath = pyodide.runPython('_process_result if "_process_result" in globals() and _process_result is not None else None');
                         if (!resultPath || resultPath.toString() === 'None') {
                             throw new Error('处理函数未返回文件路径');
                         }
                         
-                        // 确保正确转换 Python 字符串（支持中文）
                         outputFileName = String(resultPath);
                         console.log('输出文件名:', outputFileName);
-                        console.log('文件名长度:', outputFileName.length);
                     } catch (error) {
-                        // 清理临时文件
                         try {
                             pyodide.FS.unlink(safeFileName);
                         } catch (e) {}
                         
-                        // 提取错误信息
                         let errorMsg = '';
                         
-                        // 处理 Pyodide 的 ErrnoError
                         if (error.name === 'ErrnoError' || error.errno !== undefined) {
                             errorMsg = `文件系统错误 (errno: ${error.errno || '未知'}): ${error.message || error.toString()}`;
-                            if (error.errno === 44) {
-                                errorMsg += '\n这可能是文件保存时的问题，请检查文件路径和权限。';
-                            }
                         } else if (error.message) {
                             errorMsg = error.message;
                         } else {
                             errorMsg = error.toString();
                         }
                         
-                        // 尝试从 Python 获取更详细的错误信息
-                        try {
-                            const pyError = pyodide.runPython(`
-                                try:
-                                    import sys
-                                    if hasattr(sys, 'last_value') and sys.last_value:
-                                        str(sys.last_value)
-                                    else:
-                                        None
-                                except:
-                                    None
-                            `);
-                            if (pyError && pyError.toString() !== 'None') {
-                                errorMsg = pyError.toString() + '\n' + errorMsg;
-                            }
-                        } catch (e) {
-                            // 如果获取失败，使用原始错误信息
-                        }
-                        
                         console.error('处理错误详情:', error);
                         throw new Error(errorMsg);
                     }
 
-                    // 验证 outputFileName 是否已设置
                     if (!outputFileName || outputFileName === 'undefined' || outputFileName === 'None') {
                         throw new Error('无法获取输出文件名，处理可能失败');
                     }
                     
-                    // 检查输出文件是否存在
                     let fileExists = false;
                     try {
                         const fileInfo = pyodide.FS.analyzePath(outputFileName);
                         fileExists = fileInfo.exists;
-                        console.log(`检查文件 ${outputFileName}: 存在=${fileExists}`);
                     } catch (e) {
-                        console.error('检查文件时出错:', e);
                         fileExists = false;
                     }
                     
                     if (!fileExists) {
-                        // 尝试列出当前目录的文件，帮助调试
-                        try {
-                            const files = pyodide.runPython(`
-                                import os
-                                [f for f in os.listdir('.') if f.endswith('.xlsx')]
-                            `);
-                            console.log('当前目录的 xlsx 文件:', files);
-                        } catch (e) {
-                            console.error('列出文件失败:', e);
-                        }
                         throw new Error(`输出文件 ${outputFileName} 不存在，文件保存可能失败`);
                     }
                     
-                    // 读取处理后的文件
                     let outputData;
                     try {
                         outputData = pyodide.FS.readFile(outputFileName);
@@ -659,15 +869,13 @@
                         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
                     });
 
-                    // 创建下载链接
                     const url = URL.createObjectURL(blob);
                     processedFiles.push({
                         originalName: file.name,
-                        outputName: outputFileName, // 文件名已包含中文
+                        outputName: outputFileName,
                         url: url
                     });
 
-                    // 清理临时文件
                     try {
                         pyodide.FS.unlink(safeFileName);
                         if (outputFileName && pyodide.FS.analyzePath(outputFileName).exists) {
@@ -681,21 +889,25 @@
                 // 显示下载链接
                 downloadLinks.innerHTML = processedFiles.map((file, index) => {
                     const displayName = file.outputName || `processed_${file.originalName}`;
-                    // 对中文文件名进行编码处理，确保正确显示和下载
-                    const encodedName = encodeURIComponent(displayName);
-                    // 使用 data URL 方式确保中文文件名正确下载
                     return `
-                        <a href="${file.url}" download="${displayName}" class="download-link" data-filename="${displayName}">
-                            📥 下载: ${displayName}
+                        <a href="${file.url}" download="${displayName}" class="download-link">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                            </svg>
+                            <span>${displayName}</span>
                         </a>
                     `;
                 }).join('');
 
-                // 设置一键全部下载按钮（只有多个文件时才显示）
                 const downloadAllBtn = document.getElementById('downloadAllBtn');
                 if (processedFiles.length > 1) {
                     downloadAllBtn.style.display = 'block';
-                    downloadAllBtn.textContent = `📦 一键全部下载 (${processedFiles.length} 个文件)`;
+                    downloadAllBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                        </svg>
+                        一键全部下载 (${processedFiles.length} 个文件)
+                    `;
                 } else {
                     downloadAllBtn.style.display = 'none';
                 }
@@ -703,9 +915,8 @@
                 downloadSection.classList.add('show');
                 progressBar.classList.remove('show');
                 statusEl.className = 'status success';
-                statusEl.textContent = `✓ 处理完成！共处理 ${uploadedFiles.length} 个文件`;
+                statusEl.textContent = `处理完成！共处理 ${uploadedFiles.length} 个文件`;
 
-                // 清空文件列表
                 uploadedFiles = [];
                 fileList.innerHTML = '';
                 fileInput.value = '';
@@ -714,29 +925,18 @@
             } catch (error) {
                 progressBar.classList.remove('show');
                 statusEl.className = 'status error';
-                let errorMessage = '处理失败: ';
-                if (error.message) {
-                    errorMessage += error.message;
-                } else if (error.toString) {
-                    errorMessage += error.toString();
-                } else {
-                    errorMessage += '未知错误';
-                }
-                statusEl.textContent = errorMessage;
+                statusEl.textContent = '处理失败: ' + (error.message || error.toString() || '未知错误');
                 statusEl.style.display = 'block';
                 console.error('处理错误:', error);
                 processBtn.disabled = false;
                 
-                // 清理所有临时文件
                 uploadedFiles.forEach(file => {
                     const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
                     try {
                         if (pyodide.FS.analyzePath(safeFileName).exists) {
                             pyodide.FS.unlink(safeFileName);
                         }
-                    } catch (e) {
-                        console.warn('清理文件失败:', e);
-                    }
+                    } catch (e) {}
                 });
             }
         });
@@ -751,32 +951,27 @@
 
             try {
                 downloadAllBtn.disabled = true;
-                downloadAllBtn.textContent = '📦 正在打包...';
+                downloadAllBtn.innerHTML = `
+                    <div class="spinner" style="width: 18px; height: 18px; border-color: rgba(255,255,255,0.3); border-top-color: white; margin-right: 8px; display: inline-block; vertical-align: middle;"></div>
+                    正在打包...
+                `;
 
-                // 创建 JSZip 实例
                 const zip = new JSZip();
 
-                // 将所有文件添加到 zip
                 for (let i = 0; i < processedFiles.length; i++) {
                     const file = processedFiles[i];
                     const displayName = file.outputName || `processed_${file.originalName}`;
-                    
-                    // 从 blob URL 获取文件数据
                     const response = await fetch(file.url);
                     const blob = await response.blob();
-                    
-                    // 添加到 zip
                     zip.file(displayName, blob);
                 }
 
-                // 生成 zip 文件
                 const zipBlob = await zip.generateAsync({ 
                     type: 'blob',
                     compression: 'DEFLATE',
                     compressionOptions: { level: 6 }
                 });
 
-                // 创建下载链接
                 const zipUrl = URL.createObjectURL(zipBlob);
                 const zipLink = document.createElement('a');
                 zipLink.href = zipUrl;
@@ -785,18 +980,27 @@
                 zipLink.click();
                 document.body.removeChild(zipLink);
                 
-                // 清理 URL
                 setTimeout(() => {
                     URL.revokeObjectURL(zipUrl);
                 }, 100);
 
                 downloadAllBtn.disabled = false;
-                downloadAllBtn.textContent = '📦 一键全部下载';
+                downloadAllBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                    </svg>
+                    一键全部下载 (${processedFiles.length} 个文件)
+                `;
             } catch (error) {
                 console.error('打包失败:', error);
                 alert('打包失败: ' + error.message);
                 downloadAllBtn.disabled = false;
-                downloadAllBtn.textContent = '📦 一键全部下载';
+                downloadAllBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                    </svg>
+                    一键全部下载
+                `;
             }
         });
 
@@ -809,4 +1013,3 @@
     </script>
 </body>
 </html>
-

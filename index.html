@@ -4,7 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>应用导航中心</title>
+    <!-- 思源宋体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            /* Claude 风格配色 */
+            --bg-primary: #FAF9F7;
+            --bg-secondary: #F5F4F0;
+            --bg-card: #FFFFFF;
+            --text-primary: #1A1915;
+            --text-secondary: #5D5D5A;
+            --text-muted: #8B8B88;
+            --accent-primary: #D97706;
+            --accent-secondary: #B45309;
+            --accent-light: #FEF3C7;
+            --border-color: #E5E4E0;
+            --border-hover: #D1D0CC;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,156 +37,242 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Noto Serif SC', 'Source Han Serif SC', 'Source Han Serif', serif;
+            background: var(--bg-primary);
             min-height: 100vh;
-            padding: 20px;
+            color: var(--text-primary);
+            line-height: 1.6;
         }
 
-        .container {
-            max-width: 1200px;
+        /* 顶部装饰条 */
+        .top-accent {
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+        }
+
+        .page-wrapper {
+            max-width: 1000px;
             margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 50px 40px;
+            padding: 60px 24px 80px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 50px;
+            margin-bottom: 64px;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .logo svg {
+            width: 32px;
+            height: 32px;
+            color: white;
         }
 
         h1 {
-            color: #333;
-            font-size: 3em;
-            margin-bottom: 15px;
-            font-weight: 700;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
         }
 
         .subtitle {
-            color: #666;
-            font-size: 1.2em;
+            font-size: 1.125rem;
+            color: var(--text-secondary);
             font-weight: 400;
         }
 
         .apps-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
         }
 
         .app-card {
-            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
-            border: 2px solid #e8ebff;
-            border-radius: 15px;
-            padding: 30px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 32px;
             text-decoration: none;
             color: inherit;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             cursor: pointer;
             display: block;
             position: relative;
-            overflow: hidden;
-        }
-
-        .app-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
         }
 
         .app-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
-            border-color: #667eea;
+            border-color: var(--border-hover);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
         }
 
-        .app-card:hover::before {
-            transform: scaleX(1);
+        .app-card:active {
+            transform: translateY(0);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 16px;
         }
 
         .app-icon {
-            font-size: 48px;
-            margin-bottom: 20px;
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            background: var(--accent-light);
+            border-radius: var(--radius-sm);
+            flex-shrink: 0;
+        }
+
+        .app-icon svg {
+            width: 24px;
+            height: 24px;
+            color: var(--accent-primary);
+        }
+
+        .card-title-group {
+            flex: 1;
         }
 
         .app-title {
-            font-size: 1.5em;
-            color: #333;
-            margin-bottom: 12px;
+            font-size: 1.25rem;
+            color: var(--text-primary);
             font-weight: 600;
-        }
-
-        .app-description {
-            color: #666;
-            font-size: 1em;
-            line-height: 1.6;
+            margin-bottom: 4px;
+            line-height: 1.4;
         }
 
         .app-badge {
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 0.75rem;
             font-weight: 500;
-            margin-top: 15px;
+            letter-spacing: 0.02em;
+        }
+
+        .app-description {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+            line-height: 1.7;
+        }
+
+        .card-arrow {
+            position: absolute;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: all 0.2s ease;
+            color: var(--accent-primary);
+        }
+
+        .app-card:hover .card-arrow {
+            opacity: 1;
+            right: 20px;
+        }
+
+        /* 底部信息 */
+        .footer {
+            text-align: center;
+            margin-top: 80px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-text {
+            font-size: 0.875rem;
+            color: var(--text-muted);
         }
 
         @media (max-width: 768px) {
-            .container {
-                padding: 30px 20px;
+            .page-wrapper {
+                padding: 40px 16px 60px;
             }
 
             h1 {
-                font-size: 2em;
+                font-size: 1.875rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
             }
 
             .apps-grid {
                 grid-template-columns: 1fr;
-                gap: 20px;
+                gap: 16px;
+            }
+
+            .app-card {
+                padding: 24px;
+            }
+
+            .header {
+                margin-bottom: 40px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="top-accent"></div>
+    
+    <div class="page-wrapper">
         <div class="header">
-            <h1>🚀 应用导航中心</h1>
+            <div class="logo">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                </svg>
+            </div>
+            <h1>应用导航中心</h1>
             <p class="subtitle">选择您需要的工具开始使用</p>
         </div>
 
         <div class="apps-grid">
             <a href="valuation.html" class="app-card">
-                <span class="app-icon">📊</span>
-                <div class="app-title">投资管理人估值表处理工具</div>
+                <div class="card-header">
+                    <div class="app-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 0v1.5c0 .621-.504 1.125-1.125 1.125m1.125-2.625c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 18.375h7.5" />
+                        </svg>
+                    </div>
+                    <div class="card-title-group">
+                        <div class="app-title">投资管理人估值表处理工具</div>
+                        <span class="app-badge">数据处理</span>
+                    </div>
+                </div>
                 <div class="app-description">
                     快速处理投资管理人估值表 Excel 文件，自动完成数据整理和格式化，支持批量处理多个文件。
                 </div>
-                <span class="app-badge">数据处理</span>
+                <div class="card-arrow">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                </div>
             </a>
 
             <!-- 可以在这里添加更多应用卡片 -->
-            <!-- 
-            <a href="other-app.html" class="app-card">
-                <span class="app-icon">🔧</span>
-                <div class="app-title">其他工具</div>
-                <div class="app-description">
-                    工具描述信息
-                </div>
-                <span class="app-badge">工具类型</span>
-            </a>
-            -->
+        </div>
+
+        <div class="footer">
+            <p class="footer-text">高效工具，简化工作流程</p>
         </div>
     </div>
 </body>
